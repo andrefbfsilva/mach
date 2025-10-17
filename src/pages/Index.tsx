@@ -73,17 +73,17 @@ const Index = () => {
     return (
       <div className="relative group h-full">
         {moduleContent}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1.5 z-10">
           <button
             onClick={() => handleChangeModule(slot)}
-            className="bg-primary/90 hover:bg-primary text-primary-foreground rounded-md p-2 text-xs font-semibold"
+            className="bg-primary/90 hover:bg-primary text-primary-foreground rounded px-2 py-1 text-[10px] font-semibold shadow-lg"
             title="Change Module"
           >
             CHANGE
           </button>
           <button
             onClick={() => handleRemoveModule(slot)}
-            className="bg-destructive/90 hover:bg-destructive text-destructive-foreground rounded-md p-2 text-xs font-semibold"
+            className="bg-destructive/90 hover:bg-destructive text-destructive-foreground rounded px-2 py-1 text-[10px] font-semibold shadow-lg"
             title="Remove Module"
           >
             REMOVE
