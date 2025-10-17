@@ -117,33 +117,33 @@ const Index = () => {
       case "2-modules":
         return (
           <div className={layoutClasses}>
-            <div className="h-full">{renderModule(0)}</div>
-            <div className="h-full">{renderModule(1)}</div>
+            {renderModule(0)}
+            {renderModule(1)}
           </div>
         );
       case "3-modules-a":
         return (
           <div className={layoutClasses}>
-            <div className="row-span-2 h-full">{renderModule(0)}</div>
-            <div className="h-full">{renderModule(1)}</div>
-            <div className="h-full">{renderModule(2)}</div>
+            <div className="row-span-2">{renderModule(0)}</div>
+            {renderModule(1)}
+            {renderModule(2)}
           </div>
         );
       case "3-modules-b":
         return (
           <div className={layoutClasses}>
-            <div className="h-full">{renderModule(0)}</div>
-            <div className="h-full">{renderModule(1)}</div>
-            <div className="row-span-2 h-full">{renderModule(2)}</div>
+            {renderModule(0)}
+            {renderModule(1)}
+            <div className="row-span-2">{renderModule(2)}</div>
           </div>
         );
       case "4-modules":
         return (
           <div className={layoutClasses}>
-            <div className="h-full">{renderModule(0)}</div>
-            <div className="h-full">{renderModule(1)}</div>
-            <div className="h-full">{renderModule(2)}</div>
-            <div className="h-full">{renderModule(3)}</div>
+            {renderModule(0)}
+            {renderModule(1)}
+            {renderModule(2)}
+            {renderModule(3)}
           </div>
         );
       default:
