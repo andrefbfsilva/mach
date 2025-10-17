@@ -21,11 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-start toggle and skip break functionality
 - Visual cycle progress indicator (X/4 pomodoros)
 - Phase-specific colors and improved UI
+- GitHub Pages deployment with automatic CI/CD workflow
+- Deployment URL: https://andrefbfsilva.github.io/mach-cockpit-hub/
 
 ### Fixed
 - Layout 3a and 3b now properly span full height
 - Module control buttons properly sized and centered to avoid overlap
+- Module slot sizing consistency across all layouts
 - Viewport height issues on iOS/iPadOS
+
+### Pipeline (Future)
+- Weekly Overview module for strategic planning
 
 ## [0.1.0] - 2025-10-17
 
