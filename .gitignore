@@ -32,6 +32,41 @@ dist-ssr
 *.sln
 *.sw?
 
+# OS-specific
+Thumbs.db
+Desktop.ini
+.AppleDouble
+.LSOverride
+._*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build artifacts
+*.tsbuildinfo
+.turbo
+
+# Secrets and credentials
+secrets.json
+credentials.json
+*.key
+*.pem
+*.cert
+
+# Test coverage
+coverage/
+.nyc_output/
+
 # Claude Code - Local files only
 .claude/
 CLAUDE.md
