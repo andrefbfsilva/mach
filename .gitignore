@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code - Local files only
+.claude/
+CLAUDE.md
+*.md
+!README.md
+!LICENSE.md
