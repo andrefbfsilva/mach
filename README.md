@@ -23,7 +23,7 @@ A modular productivity dashboard with an aviation/aerospace-themed UI, designed 
 
 ```bash
 # Clone repository
-git clone https://github.com/andrefbfsilva/mach-cockpit-hub.git
+git clone https://github.com/andrefbfsilva/mach.git
 
 # Install dependencies
 npm install
