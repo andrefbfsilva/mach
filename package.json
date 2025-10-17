@@ -1,8 +1,15 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "mach-cockpit-hub",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
+  "description": "Modular Activity Control Hub - Aviation-themed productivity dashboard",
+  "author": "André Silva <andrefbfsilva@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andrefbfsilva/mach-cockpit-hub.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

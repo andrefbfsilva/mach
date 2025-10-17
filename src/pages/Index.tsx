@@ -38,38 +38,73 @@ const Index = () => {
     }
   };
 
+  const handleChangeModule = (slot: number) => {
+    setSelectedSlot(slot);
+    setShowModuleSelector(true);
+  };
+
+  const handleRemoveModule = (slot: number) => {
+    const newModules = { ...modules };
+    delete newModules[slot];
+    setModules(newModules);
+  };
+
   const renderModule = (slot: number) => {
     const moduleType = modules[slot];
     if (!moduleType) {
       return <EmptyModule onAddClick={() => handleAddModuleClick(slot)} />;
     }
 
-    switch (moduleType) {
-      case "pomodoro":
-        return <PomodoroModule />;
-      case "tasks":
-        return <TaskModule />;
-      case "clock":
-        return <DualClockModule />;
-      case "notes":
-        return <NotesModule />;
-      default:
-        return <EmptyModule onAddClick={() => handleAddModuleClick(slot)} />;
-    }
+    const moduleContent = (() => {
+      switch (moduleType) {
+        case "pomodoro":
+          return <PomodoroModule />;
+        case "tasks":
+          return <TaskModule />;
+        case "clock":
+          return <DualClockModule />;
+        case "notes":
+          return <NotesModule />;
+        default:
+          return null;
+      }
+    })();
+
+    return (
+      <div className="relative group h-full">
+        {moduleContent}
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+          <button
+            onClick={() => handleChangeModule(slot)}
+            className="bg-primary/90 hover:bg-primary text-primary-foreground rounded-md p-2 text-xs font-semibold"
+            title="Change Module"
+          >
+            CHANGE
+          </button>
+          <button
+            onClick={() => handleRemoveModule(slot)}
+            className="bg-destructive/90 hover:bg-destructive text-destructive-foreground rounded-md p-2 text-xs font-semibold"
+            title="Remove Module"
+          >
+            REMOVE
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const getLayoutClasses = () => {
     switch (selectedLayout) {
       case "2-modules":
-        return "grid grid-cols-2 gap-2";
+        return "grid grid-cols-2 gap-2 h-full";
       case "3-modules-a":
-        return "grid grid-cols-2 gap-2";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
       case "3-modules-b":
-        return "grid grid-cols-2 gap-2";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
       case "4-modules":
-        return "grid grid-cols-2 gap-2";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
       default:
-        return "grid grid-cols-2 gap-2";
+        return "grid grid-cols-2 gap-2 h-full";
     }
   };
 
@@ -141,7 +176,12 @@ const Index = () => {
         />
       )}
 
-      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      {showSettings && (
+        <SettingsPanel
+          onClose={() => setShowSettings(false)}
+          onChangeLayout={() => setShowLayoutSelector(true)}
+        />
+      )}
     </div>
   );
 };
