@@ -1,15 +1,16 @@
 {
-  "name": "mach-cockpit-hub",
+  "name": "mach",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Modular Activity Control Hub - Aviation-themed productivity dashboard",
+  "description": "Modular Activity Control Hub - Aviation-themed productivity dashboard PWA for iPad",
   "author": "André Silva <andrefbfsilva@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/andrefbfsilva/mach-cockpit-hub.git"
+    "url": "https://github.com/andrefbfsilva/mach.git"
   },
+  "homepage": "https://andrefbfsilva.github.io/mach/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

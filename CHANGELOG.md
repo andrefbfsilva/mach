@@ -22,9 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual cycle progress indicator (X/4 pomodoros)
 - Phase-specific colors and improved UI
 - GitHub Pages deployment with automatic CI/CD workflow
-- Deployment URL: https://andrefbfsilva.github.io/mach-cockpit-hub/
+- Deployment URL: https://andrefbfsilva.github.io/mach/
+- React Router basename configuration for GitHub Pages subdirectory
+- Relative asset paths for proper PWA functionality
 
 ### Fixed
+- GitHub Pages 404 errors for assets (manifest, icon, CSS)
+- Asset path resolution with relative paths (./)
 - Layout 3a and 3b now properly span full height
 - Module control buttons properly sized and centered to avoid overlap
 - Module slot sizing consistency across all layouts
@@ -32,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Pipeline (Future)
 - Weekly Overview module for strategic planning
+- Custom dock safe area implementation (bottom center third reserved)
+- Possible header relocation from top to bottom for better ergonomics
 
 ## [0.1.0] - 2025-10-17
 
