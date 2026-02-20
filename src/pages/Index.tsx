@@ -96,15 +96,15 @@ const Index = () => {
   const getLayoutClasses = () => {
     switch (selectedLayout) {
       case "2-modules":
-        return "grid grid-cols-2 gap-2 h-full";
+        return "grid grid-cols-2 gap-2 h-full min-h-0";
       case "3-modules-a":
-        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full min-h-0";
       case "3-modules-b":
-        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full min-h-0";
       case "4-modules":
-        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full min-h-0";
       default:
-        return "grid grid-cols-2 gap-2 h-full";
+        return "grid grid-cols-2 gap-2 h-full min-h-0";
     }
   };
 
@@ -132,9 +132,9 @@ const Index = () => {
       case "3-modules-b":
         return (
           <div className={layoutClasses}>
-            {renderModule(0)}
-            {renderModule(1)}
-            <div className="row-span-2">{renderModule(2)}</div>
+            <div className="col-start-1 row-start-1">{renderModule(0)}</div>
+            <div className="col-start-1 row-start-2">{renderModule(1)}</div>
+            <div className="col-start-2 row-start-1 row-span-2">{renderModule(2)}</div>
           </div>
         );
       case "4-modules":
@@ -152,12 +152,21 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col pt-[env(safe-area-inset-top)]">
+    <div className="h-dvh h-screen flex flex-col overflow-hidden pt-[env(safe-area-inset-top)]">
       <Header onSettingsClick={() => setShowSettings(true)} />
 
-      <main className="flex-1 p-2">
+      <main className="flex-1 min-h-0 p-2 pb-0">
         {renderLayout()}
       </main>
+
+      {/* Bottom status bar */}
+      <footer className="flex-shrink-0 h-6 flex items-center justify-between px-4 border-t border-primary/20 bg-secondary/50">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-success pulse-glow" />
+          <span className="text-[9px] font-mono text-muted-foreground tracking-wider">ALL SYSTEMS NOMINAL</span>
+        </div>
+        <span className="text-[9px] font-mono text-muted-foreground/50 tracking-wider">MACH v1.0</span>
+      </footer>
 
       {showLayoutSelector && (
         <LayoutSelector

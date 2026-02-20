@@ -53,57 +53,62 @@ export function NotesModule() {
   const wordCount = content.trim().split(/\s+/).length;
 
   return (
-    <div className="module-panel rounded-lg p-6 h-full flex flex-col">
+    <div className="module-panel rounded-lg p-3 h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2 flex-shrink-0">
         <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-accent" />
-          <h3 className="text-lg font-semibold">NOTES</h3>
+          <FileText className="w-4 h-4 text-accent" />
+          <h3 className="text-sm font-semibold">NOTES</h3>
         </div>
         <Button
           variant={isSaved ? "outline" : "cockpit"}
           size="sm"
           onClick={handleSave}
           disabled={isSaved}
+          className="h-6 min-h-0 text-[10px]"
         >
-          <Save className="w-4 h-4" />
+          <Save className="w-3 h-3" />
           {isSaved ? "SAVED" : "SAVE"}
         </Button>
       </div>
 
       {/* Toolbar */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-1.5 mb-2 flex-shrink-0">
         <Button
           variant="switch"
           size="sm"
           onClick={() => insertMarkdown("bold")}
           title="Bold"
+          className="h-7 w-7 min-h-0 min-w-0 p-0"
         >
-          <Bold className="w-4 h-4" />
+          <Bold className="w-3.5 h-3.5" />
         </Button>
         <Button
           variant="switch"
           size="sm"
           onClick={() => insertMarkdown("italic")}
           title="Italic"
+          className="h-7 w-7 min-h-0 min-w-0 p-0"
         >
-          <Italic className="w-4 h-4" />
+          <Italic className="w-3.5 h-3.5" />
         </Button>
         <Button
           variant="switch"
           size="sm"
           onClick={() => insertMarkdown("list")}
           title="List"
+          className="h-7 w-7 min-h-0 min-w-0 p-0"
         >
-          <List className="w-4 h-4" />
+          <List className="w-3.5 h-3.5" />
         </Button>
         <Button
           variant="switch"
           size="sm"
           onClick={() => insertMarkdown("link")}
           title="Link"
+          className="h-7 w-7 min-h-0 min-w-0 p-0"
         >
-          <LinkIcon className="w-4 h-4" />
+          <LinkIcon className="w-3.5 h-3.5" />
         </Button>
       </div>
 
@@ -111,20 +116,20 @@ export function NotesModule() {
       <Textarea
         value={content}
         onChange={(e) => handleContentChange(e.target.value)}
-        className="flex-1 bg-secondary border-primary/30 text-foreground font-mono text-sm resize-none focus-visible:ring-primary"
+        className="flex-1 min-h-0 bg-secondary border-primary/30 text-foreground font-mono text-xs resize-none focus-visible:ring-primary"
         placeholder="Start writing your notes..."
       />
 
       {/* Footer */}
-      <div className="flex items-center justify-between mt-4 text-xs font-mono text-muted-foreground">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between mt-2 text-[10px] font-mono text-muted-foreground flex-shrink-0">
+        <div className="flex items-center gap-3">
           <span>{charCount} CHARS</span>
           <span>{wordCount} WORDS</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {isSaved && (
             <>
-              <div className="w-2 h-2 rounded-full bg-success pulse-glow" />
+              <div className="w-1.5 h-1.5 rounded-full bg-success pulse-glow" />
               <span className="text-success">AUTO-SAVED</span>
             </>
           )}
