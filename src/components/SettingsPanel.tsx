@@ -1,7 +1,7 @@
 import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout } from "lucide-react";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -11,7 +11,53 @@ interface SettingsPanelProps {
 export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
+  const [wakeLockEnabled, setWakeLockEnabled] = useState(() => {
+    return localStorage.getItem("mach-wakelock") === "true";
+  });
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  const requestWakeLock = async () => {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        wakeLockRef.current.addEventListener("release", () => {
+          wakeLockRef.current = null;
+        });
+      }
+    } catch {
+      // Wake lock request failed (e.g. low battery, tab not visible)
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    if (wakeLockRef.current) {
+      await wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  };
+
+  // Acquire/release wake lock when toggle changes
+  useEffect(() => {
+    if (wakeLockEnabled) {
+      requestWakeLock();
+      localStorage.setItem("mach-wakelock", "true");
+    } else {
+      releaseWakeLock();
+      localStorage.setItem("mach-wakelock", "false");
+    }
+    return () => { releaseWakeLock(); };
+  }, [wakeLockEnabled]);
+
+  // Re-acquire wake lock when page becomes visible again (required by spec)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && wakeLockEnabled) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [wakeLockEnabled]);
 
   return (
     <div className="fixed inset-0 z-50 flex">

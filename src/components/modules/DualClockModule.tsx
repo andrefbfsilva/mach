@@ -60,8 +60,13 @@ export function DualClockModule() {
     }
   };
 
-  const usedIanas = slots.map(s => s.iana);
-  const availableTimezones = ALL_TIMEZONES.filter(tz => !usedIanas.includes(tz.iana));
+  // Show all timezones except those used in OTHER slots (not the one being edited)
+  const availableTimezones = editingSlot !== null
+    ? ALL_TIMEZONES.filter(tz => {
+        const otherSlotIanas = slots.filter((_, i) => i !== editingSlot).map(s => s.iana);
+        return !otherSlotIanas.includes(tz.iana);
+      })
+    : [];
 
   return (
     <div className="module-panel rounded-lg p-3 h-full flex flex-col overflow-hidden relative">
