@@ -163,14 +163,14 @@ export function PomodoroModule() {
   };
 
   return (
-    <div className="module-panel rounded-lg p-6 h-full flex flex-col items-center justify-between">
+    <div className="module-panel rounded-lg p-3 h-full flex flex-col items-center justify-between overflow-hidden">
       {/* Settings Toggle */}
-      <div className="w-full flex justify-end mb-2">
+      <div className="w-full flex justify-end">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowSettings(!showSettings)}
-          className="h-6 px-2"
+          className="h-5 px-1 min-h-0 min-w-0"
         >
           <Settings className="w-3 h-3" />
         </Button>
@@ -237,35 +237,35 @@ export function PomodoroModule() {
         /* Timer Display */
         <>
           {/* Phase Indicator */}
-          <div className="text-center mb-4">
-            <div className="text-xs font-mono uppercase tracking-widest" style={{ color: getPhaseColor() }}>
+          <div className="text-center">
+            <div className="text-[10px] font-mono uppercase tracking-widest" style={{ color: getPhaseColor() }}>
               {getPhaseLabel()}
             </div>
-            <div className="text-[10px] font-mono text-muted-foreground mt-1">
+            <div className="text-[9px] font-mono text-muted-foreground mt-0.5">
               POMODORO {cycleCount + 1}/4
             </div>
           </div>
 
           {/* Circular Timer */}
-          <div className="relative">
-            <svg className="w-36 h-36 -rotate-90">
+          <div className="relative flex-shrink-0">
+            <svg className="w-28 h-28 -rotate-90">
               <circle
-                cx="72"
-                cy="72"
-                r="66"
+                cx="56"
+                cy="56"
+                r="50"
                 stroke="hsl(240 6% 12%)"
-                strokeWidth="6"
+                strokeWidth="5"
                 fill="none"
               />
               <circle
-                cx="72"
-                cy="72"
-                r="66"
+                cx="56"
+                cy="56"
+                r="50"
                 stroke={getPhaseColor()}
-                strokeWidth="6"
+                strokeWidth="5"
                 fill="none"
-                strokeDasharray={2 * Math.PI * 66}
-                strokeDashoffset={2 * Math.PI * 66 * (1 - progress / 100)}
+                strokeDasharray={2 * Math.PI * 50}
+                strokeDashoffset={2 * Math.PI * 50 * (1 - progress / 100)}
                 className="transition-all duration-1000"
                 style={{ filter: `drop-shadow(0 0 6px ${getPhaseColor()})` }}
               />
@@ -273,31 +273,31 @@ export function PomodoroModule() {
 
             {/* Time Display */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-3xl font-mono font-bold" style={{ color: getPhaseColor() }}>
+              <div className="text-2xl font-mono font-bold" style={{ color: getPhaseColor() }}>
                 {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
               </div>
-              <div className="text-[9px] font-mono text-muted-foreground mt-1 uppercase tracking-widest">
+              <div className="text-[8px] font-mono text-muted-foreground mt-0.5 uppercase tracking-widest">
                 {isActive ? "RUNNING" : currentSeconds === 0 ? "DONE" : "PAUSED"}
               </div>
             </div>
           </div>
 
           {/* Controls */}
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2">
             <Button
               variant="cockpit"
               size="sm"
               onClick={toggleTimer}
-              className="flex-1"
+              className="flex-1 h-8 min-h-0"
             >
               {isActive ? (
                 <>
-                  <Pause className="w-4 h-4" />
+                  <Pause className="w-3.5 h-3.5" />
                   PAUSE
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4" />
+                  <Play className="w-3.5 h-3.5" />
                   START
                 </>
               )}
@@ -306,8 +306,9 @@ export function PomodoroModule() {
               variant="outline"
               size="sm"
               onClick={resetTimer}
+              className="h-8 min-h-0"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5" />
             </Button>
             {phase !== "work" && (
               <Button
@@ -315,16 +316,17 @@ export function PomodoroModule() {
                 size="sm"
                 onClick={skipBreak}
                 title="Skip Break"
+                className="h-8 min-h-0"
               >
-                <SkipForward className="w-4 h-4" />
+                <SkipForward className="w-3.5 h-3.5" />
               </Button>
             )}
           </div>
 
           {/* Session Counter */}
-          <div className="flex items-center justify-center gap-2 mt-4">
+          <div className="flex items-center justify-center gap-2">
             <Timer className="w-3 h-3 text-accent" />
-            <span className="text-xs font-mono text-muted-foreground">
+            <span className="text-[10px] font-mono text-muted-foreground">
               TOTAL: {pomodorosCompleted}
             </span>
             <div className="flex gap-1 ml-2">

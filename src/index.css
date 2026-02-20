@@ -78,8 +78,9 @@ All colors MUST be HSL.
     background-size: 50px 50px;
 
     /* iPad optimizations */
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -91,8 +92,15 @@ All colors MUST be HSL.
 
   /* Fix for iPad viewport height */
   #root {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  html {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   /* Aviation Data Display Font */
@@ -153,10 +161,9 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Hardware acceleration for animations - only on elements that actually animate */
+  /* Ensure modules never overflow their grid cell */
   .module-panel {
-    transform: translateZ(0);
-    will-change: transform;
+    min-height: 0;
   }
 }
 
@@ -177,13 +184,13 @@ All colors MUST be HSL.
 @media screen and (min-width: 1024px) and (orientation: landscape) {
   /* iPad landscape specific */
   .module-panel {
-    padding: 1.5rem;
+    padding: 0.75rem;
   }
 }
 
 @media screen and (max-width: 1024px) and (orientation: portrait) {
   /* iPad portrait specific */
   .module-panel {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 }

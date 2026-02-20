@@ -96,15 +96,15 @@ const Index = () => {
   const getLayoutClasses = () => {
     switch (selectedLayout) {
       case "2-modules":
-        return "grid grid-cols-2 gap-2 h-full";
+        return "grid grid-cols-2 gap-2 h-full min-h-0";
       case "3-modules-a":
-        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full min-h-0";
       case "3-modules-b":
-        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full min-h-0";
       case "4-modules":
-        return "grid grid-cols-2 grid-rows-2 gap-2 h-full";
+        return "grid grid-cols-2 grid-rows-2 gap-2 h-full min-h-0";
       default:
-        return "grid grid-cols-2 gap-2 h-full";
+        return "grid grid-cols-2 gap-2 h-full min-h-0";
     }
   };
 
@@ -152,10 +152,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col pt-[env(safe-area-inset-top)]">
+    <div className="h-dvh h-screen flex flex-col overflow-hidden pt-[env(safe-area-inset-top)]">
       <Header onSettingsClick={() => setShowSettings(true)} />
 
-      <main className="flex-1 p-2">
+      <main className="flex-1 min-h-0 p-2">
         {renderLayout()}
       </main>
 

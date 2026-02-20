@@ -52,29 +52,30 @@ export function DualClockModule() {
     timeDiff > 0 ? `+${timeDiff}h` : timeDiff < 0 ? `${timeDiff}h` : "SAME";
 
   return (
-    <div className="module-panel rounded-lg p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold">DUAL CLOCK</h3>
+    <div className="module-panel rounded-lg p-3 h-full flex flex-col overflow-hidden relative">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold">DUAL CLOCK</h3>
         <Button
           variant="switch"
           size="sm"
           onClick={() => setIs24Hour(!is24Hour)}
+          className="h-6 min-h-0 text-[10px]"
         >
           {is24Hour ? "24H" : "12H"}
         </Button>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center gap-8">
+      <div className="flex-1 flex flex-col justify-center gap-4 min-h-0">
         {/* Local Time */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            <span className="font-mono">LISBOA 🏠</span>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Clock className="w-3 h-3" />
+            <span className="font-mono text-[10px]">LISBOA</span>
           </div>
-          <div className="text-5xl font-mono font-bold text-primary">
+          <div className="text-3xl font-mono font-bold text-primary">
             {formatTime(currentTime)}
           </div>
-          <div className="text-sm text-muted-foreground font-mono">
+          <div className="text-[10px] text-muted-foreground font-mono">
             {formatDate(currentTime)}
           </div>
         </div>
@@ -85,35 +86,35 @@ export function DualClockModule() {
             <div className="w-full border-t border-primary/30"></div>
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-card px-3 text-xs font-mono text-accent">
+            <span className="bg-card px-2 text-[10px] font-mono text-accent">
               {diffText}
             </span>
           </div>
         </div>
 
         {/* Selected Timezone */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Globe className="w-4 h-4" />
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Globe className="w-3 h-3" />
             <button
               onClick={() => setShowTimezoneSelector(!showTimezoneSelector)}
-              className="font-mono hover:text-accent transition-colors"
+              className="font-mono text-[10px] hover:text-accent transition-colors min-h-0 min-w-0"
             >
               {selectedTimezone.name.toUpperCase()} {selectedTimezone.emoji}
             </button>
           </div>
-          <div className="text-5xl font-mono font-bold text-accent">
+          <div className="text-3xl font-mono font-bold text-accent">
             {formatTime(currentTime, selectedTimezone.offset)}
           </div>
-          <div className="text-sm text-muted-foreground font-mono">
+          <div className="text-[10px] text-muted-foreground font-mono">
             {formatDate(currentTime)}
           </div>
         </div>
 
         {/* Timezone Selector */}
         {showTimezoneSelector && (
-          <div className="absolute inset-x-6 bottom-6 glass rounded p-4 animate-fade-in">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="absolute inset-x-3 bottom-8 glass rounded p-3 animate-fade-in z-20">
+            <div className="grid grid-cols-2 gap-1.5">
               {timezones.map((tz) => (
                 <Button
                   key={tz.name}
@@ -125,10 +126,10 @@ export function DualClockModule() {
                     setSelectedTimezone(tz);
                     setShowTimezoneSelector(false);
                   }}
-                  className="justify-start"
+                  className="justify-start h-7 min-h-0"
                 >
-                  <span className="mr-2">{tz.emoji}</span>
-                  <span className="text-xs">{tz.name}</span>
+                  <span className="mr-1">{tz.emoji}</span>
+                  <span className="text-[10px]">{tz.name}</span>
                 </Button>
               ))}
             </div>
@@ -137,8 +138,8 @@ export function DualClockModule() {
       </div>
 
       {/* Status Indicator */}
-      <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mt-4">
-        <div className="w-2 h-2 rounded-full bg-success pulse-glow" />
+      <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground mt-2 flex-shrink-0">
+        <div className="w-1.5 h-1.5 rounded-full bg-success pulse-glow" />
         TIME SYNC ACTIVE
       </div>
     </div>
