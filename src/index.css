@@ -153,10 +153,8 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Hardware acceleration for animations */
-  .module-panel,
-  .glass,
-  button {
+  /* Hardware acceleration for animations - only on elements that actually animate */
+  .module-panel {
     transform: translateZ(0);
     will-change: transform;
   }

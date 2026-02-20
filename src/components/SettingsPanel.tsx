@@ -17,7 +17,7 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
       <div
-        className="flex-1 bg-background/80 backdrop-blur-sm"
+        className="flex-1 bg-background/80"
         onClick={onClose}
       />
 
