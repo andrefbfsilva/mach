@@ -100,10 +100,10 @@ All colors MUST be HSL.
     font-family: 'JetBrains Mono', 'Courier New', monospace;
   }
 
-  /* Glass Morphism Effect */
+  /* Glass Morphism Effect - backdrop-filter removed: causes position:fixed rendering
+     failures on older iPads (known WebKit bug). Header gets blur via Tailwind class. */
   .glass {
-    background: hsl(240 6% 12% / 0.8);
-    backdrop-filter: blur(20px);
+    background: hsl(240 6% 12%);
     border: 1px solid hsl(199 100% 50% / 0.3);
   }
 

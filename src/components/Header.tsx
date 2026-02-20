@@ -8,7 +8,7 @@ interface HeaderProps {
 export function Header({ onSettingsClick }: HeaderProps) {
 
   return (
-    <header className="glass h-16 flex items-center justify-between px-6 border-b border-primary/30">
+    <header className="glass backdrop-blur-md h-16 flex items-center justify-between px-6 border-b border-primary/30">
       {/* Logo Section */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded flex items-center justify-center">
