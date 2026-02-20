@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - claude/debug-broken-branch-83dSB
 
 permissions:
   contents: read
