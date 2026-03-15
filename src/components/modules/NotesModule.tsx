@@ -9,6 +9,7 @@ export function NotesModule() {
   const [localContent, setLocalContent] = useState(notes.content);
   const [isSynced, setIsSynced] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Keep localContent in sync if store updates externally
   useEffect(() => {
@@ -26,7 +27,7 @@ export function NotesModule() {
   };
 
   const insertMarkdown = (type: string) => {
-    const textarea = document.querySelector("textarea");
+    const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
@@ -105,6 +106,7 @@ export function NotesModule() {
 
       {/* Editor */}
       <Textarea
+        ref={textareaRef}
         value={localContent}
         onChange={(e) => handleContentChange(e.target.value)}
         className="flex-1 bg-secondary border-primary/30 text-foreground font-mono text-sm resize-none focus-visible:ring-primary"
