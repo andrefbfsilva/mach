@@ -118,10 +118,15 @@ export function NotesModule() {
           <span>{wordCount} WORDS</span>
         </div>
         <div className="flex items-center gap-2">
-          {isSynced && (
+          {isSynced ? (
             <>
               <div className="w-2 h-2 rounded-full bg-success pulse-glow" />
               <span className="text-success">SYNCED</span>
+            </>
+          ) : (
+            <>
+              <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+              <span className="text-yellow-400">SAVING...</span>
             </>
           )}
         </div>
