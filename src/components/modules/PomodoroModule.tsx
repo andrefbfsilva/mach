@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Timer, SkipForward, Settings } from "lucide-react";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
-import { usePomodoroStore, useFocusStore } from "@/store/useStore";
+import { usePomodoroStore, useFocusStore, useStore } from "@/store/useStore";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useSound } from "@/hooks/useSound";
 
@@ -68,27 +68,24 @@ export function PomodoroModule() {
   const handlePhaseComplete = () => {
     setIsActive(false);
 
+    const currentPomodoro = useStore.getState().pomodoro;
     trigger("warning");
     play("alert");
 
     if ('Notification' in window && Notification.permission === 'granted') {
       const title = phase === 'work' ? 'Pomodoro Complete!' : 'Break Over!';
       const body = phase === 'work'
-        ? 'Session #' + (pomodoro.pomodorosCompleted + 1) + ' done. Time for a break.'
+        ? 'Session #' + (currentPomodoro.pomodorosCompleted + 1) + ' done. Time for a break.'
         : 'Back to focus mode, pilot.';
       new Notification(title, { body, icon: '/mach/icon.svg', tag: 'mach-pomodoro' });
     }
 
     if (phase === "work") {
-      // Compute next cycleCount before calling store action
-      const nextCycleCount = pomodoro.cycleCount + 1;
-
+      const nextCycleCount = currentPomodoro.cycleCount + 1;
       incrementPomodoro();
-
       const endedAt = new Date().toISOString();
-      const startedAt = new Date(Date.now() - pomodoro.workDuration * 60 * 1000).toISOString();
-      addFocusSession({ startedAt, endedAt, durationMinutes: pomodoro.workDuration, type: "pomodoro" });
-
+      const startedAt = new Date(Date.now() - currentPomodoro.workDuration * 60 * 1000).toISOString();
+      addFocusSession({ startedAt, endedAt, durationMinutes: currentPomodoro.workDuration, type: "pomodoro" });
       if (nextCycleCount >= 4) {
         setPhase("longBreak");
       } else {
@@ -98,7 +95,7 @@ export function PomodoroModule() {
       setPhase("work");
     }
 
-    if (pomodoro.autoStart) {
+    if (currentPomodoro.autoStart) {
       setTimeout(() => setIsActive(true), 1000);
     }
   };
