@@ -252,7 +252,7 @@ export function PomodoroModule() {
 
           {/* Circular Timer */}
           <div className="relative">
-            <svg className="w-36 h-36 -rotate-90">
+            <svg className="w-28 h-28 md:w-36 md:h-36 -rotate-90" viewBox="0 0 144 144">
               <circle
                 cx="72"
                 cy="72"
