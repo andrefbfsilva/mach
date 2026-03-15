@@ -7,13 +7,17 @@ export const isWakeLockSupported =
 export function useWakeLock() {
   const [isActive, setIsActive] = useState(false);
   const sentinelRef = useRef<WakeLockSentinel | null>(null);
+  const releaseHandlerRef = useRef<(() => void) | null>(null);
   const wakeLockEnabled = useStore((s) => s.settings.wakeLockEnabled);
 
   const request = async () => {
     if (!isWakeLockSupported) return;
     try {
-      sentinelRef.current = await navigator.wakeLock.request("screen");
-      sentinelRef.current.addEventListener("release", () => setIsActive(false));
+      const sentinel = await navigator.wakeLock.request("screen");
+      const handleRelease = () => setIsActive(false);
+      sentinel.addEventListener("release", handleRelease);
+      sentinelRef.current = sentinel;
+      releaseHandlerRef.current = handleRelease;
       setIsActive(true);
     } catch {
       setIsActive(false);
@@ -21,8 +25,12 @@ export function useWakeLock() {
   };
 
   const release = () => {
+    if (sentinelRef.current && releaseHandlerRef.current) {
+      sentinelRef.current.removeEventListener("release", releaseHandlerRef.current);
+    }
     sentinelRef.current?.release();
     sentinelRef.current = null;
+    releaseHandlerRef.current = null;
     setIsActive(false);
   };
 
