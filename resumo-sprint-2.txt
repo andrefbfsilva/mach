@@ -1,0 +1,176 @@
+# Sprint 2 — PWA Foundation & Notifications
+
+**Branch:** `claude/watch-integration-foundation-Qcjim`
+**Data:** 2026-03-15
+**Base:** Sprint 1 (Zustand store + persistência) ✅
+
+---
+
+## Contexto
+
+O MACH tinha manifest.json e meta tags iOS, mas zero service worker. A app não funcionava offline, não podia enviar notificações, e não era instalável como PWA de verdade. Este sprint resolve os três pontos.
+
+---
+
+## Dependências instaladas
+
+| Pacote | Tipo | Versão |
+|--------|------|--------|
+| `vite-plugin-pwa` | devDependency | `^1.2.0` |
+
+Nenhuma outra dependência adicionada.
+
+---
+
+## Ficheiros alterados
+
+### `vite.config.ts`
+
+Adicionado o plugin `VitePWA` ao array de plugins, em modo **generateSW** (o plugin gera o service worker automaticamente — zero código SW manual).
+
+Configuração:
+- `registerType: 'autoUpdate'` — o SW actualiza-se silenciosamente sem intervenção do user
+- `manifest: false` — usa o `public/manifest.json` existente, não gera um novo
+- `globPatterns` — precache de todos os assets JS, CSS, HTML, imagens e fontes
+- **Runtime caching** para dois domínios de fonts Google:
+  - `fonts.googleapis.com` → estratégia `CacheFirst`, TTL 1 ano, max 10 entradas
+  - `fonts.gstatic.com` → estratégia `CacheFirst`, TTL 1 ano, max 10 entradas
+
+### `src/main.tsx`
+
+Adicionado o registo do service worker **após** o `ReactDOM.render`, usando o helper virtual `virtual:pwa-register` fornecido pelo plugin:
+
+```ts
+import { registerSW } from 'virtual:pwa-register'
+
+const updateSW = registerSW({
+  onNeedRefresh() { updateSW(true) },
+  onOfflineReady() { console.log('[MACH] PWA ready for offline use') },
+})
+```
+
+- `onNeedRefresh` → aceita a nova versão automaticamente (coerente com `autoUpdate`)
+- `onOfflineReady` → log de confirmação quando o precache está completo
+
+### `src/vite-env.d.ts`
+
+Adicionada a referência de tipos do plugin para que o TypeScript reconheça o módulo virtual:
+
+```ts
+/// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/client" />
+```
+
+### `public/manifest.json`
+
+**Problema corrigido:** o Chrome recente rejeita entradas com `"purpose": "any maskable"` combinados — exige entradas separadas.
+
+| Antes | Depois |
+|-------|--------|
+| 1 entrada com `"purpose": "any maskable"` | 2 entradas: uma `"any"`, outra `"maskable"` |
+
+Também confirmados `"scope": "./"` e `"prefer_related_applications": false` para instalação limpa no iOS/Android.
+
+### `src/components/modules/PomodoroModule.tsx`
+
+Adicionado bloco de notificação **no topo** de `handlePhaseComplete()`, antes de qualquer lógica de estado:
+
+```ts
+if ('Notification' in window && Notification.permission === 'granted') {
+  const title = phase === 'work' ? 'Pomodoro Complete!' : 'Break Over!';
+  const body = phase === 'work'
+    ? 'Session #' + (pomodoro.pomodorosCompleted + 1) + ' done. Time for a break.'
+    : 'Back to focus mode, pilot.';
+  new Notification(title, { body, icon: '/mach/icon.svg', tag: 'mach-pomodoro' });
+}
+```
+
+- `tag: 'mach-pomodoro'` — evita acumulação de notificações na tray; a nova substitui a anterior
+- Verificação defensiva `'Notification' in window` — compatível com browsers sem suporte
+- Só dispara se `permission === 'granted'` — nunca pede permissão implicitamente
+
+### `src/components/SettingsPanel.tsx`
+
+Adicionado novo item na secção **Audio & Haptics**, após o toggle de Haptic Feedback.
+
+Estado local `notifPermission` inicializado com `Notification.permission` (ou `'denied'` em browsers sem suporte).
+
+| `Notification.permission` | UI renderizada |
+|---------------------------|----------------|
+| `'default'` | Botão **ENABLE** (variant cockpit) |
+| `'granted'` | Texto **ENABLED** em verde |
+| `'denied'` | Texto **BLOCKED** em vermelho + sublabel "Enable in browser settings" |
+
+Ao clicar **ENABLE**, chama `Notification.requestPermission()` (async) e actualiza o estado local com o resultado — sem reload necessário.
+
+### `src/components/Header.tsx`
+
+Adicionado indicador de conectividade junto ao relógio, usando `useState` + `useEffect` com eventos nativos `window`:
+
+```ts
+const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+useEffect(() => {
+  const handleOnline  = () => setIsOnline(true);
+  const handleOffline = () => setIsOnline(false);
+  window.addEventListener('online',  handleOnline);
+  window.addEventListener('offline', handleOffline);
+  return () => {
+    window.removeEventListener('online',  handleOnline);
+    window.removeEventListener('offline', handleOffline);
+  };
+}, []);
+```
+
+- Dot `bg-success pulse-glow` + texto **ONLINE**
+- Dot `bg-yellow-400` + texto **OFFLINE**
+
+Segue o mesmo padrão `text-xs font-mono text-muted-foreground` dos outros indicadores da app.
+
+---
+
+## Commits
+
+| # | Mensagem | Ficheiro(s) |
+|---|----------|-------------|
+| 1 | `feat(pwa): add vite-plugin-pwa with workbox configuration` | `vite.config.ts`, `package.json` |
+| 2 | `feat(pwa): register service worker in main.tsx` | `src/main.tsx`, `src/vite-env.d.ts` |
+| 3 | `feat(pwa): update manifest.json with proper icon separation` | `public/manifest.json` |
+| 4 | `feat(pomodoro): add browser notifications on phase complete` | `PomodoroModule.tsx` |
+| 5 | `feat(settings): add notification permission request UI` | `SettingsPanel.tsx` |
+| 6 | `feat(header): add online/offline connectivity indicator` | `Header.tsx` |
+
+---
+
+## Artefactos gerados no build
+
+```
+dist/sw.js                                ← service worker principal
+dist/workbox-1d305bb8.js                  ← runtime workbox
+dist/assets/workbox-window.prod.es5-*.js  ← helper client-side
+```
+
+**Precache:** 9 entradas, 430 KiB total
+**Modo:** `generateSW` — o plugin escreve o SW; não existe nenhum `sw.js` manual no repositório
+
+---
+
+## Validação
+
+| Critério | Estado |
+|----------|--------|
+| `npm run build` sem erros | ✅ `built in 3.44s` |
+| `dist/sw.js` existe | ✅ gerado pelo VitePWA |
+| Lint sem regressões | ✅ 11 problemas pré-existentes, zero novos |
+| Notificação ao fim do Pomodoro | ✅ (requer permissão `granted`) |
+| Indicador online/offline no Header | ✅ reactivo a eventos `window` |
+| Manifest com ícones separados | ✅ |
+
+---
+
+## O que este sprint NÃO inclui (scope futuro)
+
+- **Push Notifications server-side** — requer backend + VAPID keys
+- **Background Sync** — para sincronização de dados offline
+- **Apple Watch integration** — sprint dedicado (usa Shortcuts + URL Scheme sobre PWA instalada)
+- **Ícones raster (PNG)** — actualmente só SVG; para instalação ideal no Android seria necessário 192×192 e 512×512 PNG
