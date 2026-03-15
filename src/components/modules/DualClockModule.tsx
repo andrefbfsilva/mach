@@ -154,7 +154,7 @@ export function DualClockModule() {
         </Button>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center gap-8">
+      <div className="flex-1 flex flex-col justify-center gap-8 relative">
         {/* Local Time */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
