@@ -108,6 +108,7 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
           lastModified: new Date().toISOString(),
         },
         focus: {
+          ...s.focus,
           sessions: [...s.focus.sessions, ...sessionsToAdd],
           lastModified: new Date().toISOString(),
         },
