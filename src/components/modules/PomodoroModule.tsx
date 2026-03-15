@@ -63,6 +63,14 @@ export function PomodoroModule() {
   const handlePhaseComplete = () => {
     setIsActive(false);
 
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const title = phase === 'work' ? 'Pomodoro Complete!' : 'Break Over!';
+      const body = phase === 'work'
+        ? 'Session #' + (pomodoro.pomodorosCompleted + 1) + ' done. Time for a break.'
+        : 'Back to focus mode, pilot.';
+      new Notification(title, { body, icon: '/mach/icon.svg', tag: 'mach-pomodoro' });
+    }
+
     if (phase === "work") {
       // Compute next cycleCount before calling store action
       const nextCycleCount = pomodoro.cycleCount + 1;
