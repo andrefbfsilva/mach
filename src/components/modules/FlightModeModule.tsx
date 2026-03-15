@@ -66,9 +66,7 @@ export function FlightModeModule() {
     if (!isActive) {
       // Start session
       const startedAt = new Date().toISOString();
-      addFocusSession({ startedAt, endedAt: null, durationMinutes: 0, type: "manual" });
-      // Get the id — addFocusSession uses Date.now().toString()
-      const id = Date.now().toString();
+      const id = addFocusSession({ startedAt, endedAt: null, durationMinutes: 0, type: "manual" });
       setActiveFocusId(id);
       setElapsed(0);
       setIsActive(true);
