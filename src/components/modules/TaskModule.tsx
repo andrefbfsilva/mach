@@ -79,7 +79,7 @@ export function TaskModule() {
           <Input
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleAddTask()}
+            onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
             placeholder="Enter task..."
             className="bg-secondary border-primary/30 text-foreground"
             autoFocus
