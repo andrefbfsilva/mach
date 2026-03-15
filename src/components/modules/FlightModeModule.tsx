@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Plane, Target } from "lucide-react";
 import { Button } from "../ui/button";
-import { useFocusStore } from "@/store/useStore";
+import { useFocusStore, useStore } from "@/store/useStore";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useSound } from "@/hooks/useSound";
 
@@ -43,6 +43,21 @@ export function FlightModeModule() {
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState(String(focus.dailyGoalMinutes));
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const activeFocusIdRef = useRef<string | null>(null);
+
+  // Keep ref in sync with state so unmount cleanup has fresh value
+  useEffect(() => {
+    activeFocusIdRef.current = activeFocusId;
+  }, [activeFocusId]);
+
+  // End any active session on unmount
+  useEffect(() => {
+    return () => {
+      if (activeFocusIdRef.current) {
+        useStore.getState().endFocusSession(activeFocusIdRef.current);
+      }
+    };
+  }, []);
 
   // Keep goalInput in sync if dailyGoalMinutes changes externally
   useEffect(() => {
