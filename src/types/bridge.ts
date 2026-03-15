@@ -36,16 +36,43 @@ export interface MachBridgeFile {
     createdAt: string
     processed: boolean
   }>
+  summary: {
+    nextTask: { title: string; priority: string } | null
+    pomodorosToday: number
+    focusTodayMinutes: number
+    focusDailyGoalMinutes: number
+    inboxPending: number
+  }
 }
 
 interface ExportableState {
   tasks: { items: Task[]; lastModified: string }
   pomodoro: { pomodorosCompleted: number; cycleCount: number; lastModified: string }
-  focus: { sessions: FocusSession[]; lastModified: string }
+  focus: { sessions: FocusSession[]; dailyGoalMinutes: number; lastModified: string }
   inbox: { items: InboxItem[]; lastModified: string }
 }
 
+const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
+const todayStr = () => new Date().toDateString()
+
 export function createBridgeExport(state: ExportableState): MachBridgeFile {
+  const today = todayStr()
+
+  // Next task: highest priority, not completed
+  const pendingTasks = state.tasks.items.filter((t) => !t.completed)
+  const nextTask = pendingTasks
+    .slice()
+    .sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1))[0] ?? null
+
+  // Today's completed focus sessions
+  const todaySessions = state.focus.sessions.filter(
+    (s) => s.endedAt !== null && new Date(s.startedAt).toDateString() === today
+  )
+  const focusTodayMinutes = todaySessions.reduce((acc, s) => acc + s.durationMinutes, 0)
+  const pomodorosToday = todaySessions.filter((s) => s.type === "pomodoro").length
+
+  const inboxPending = state.inbox.items.filter((i) => !i.processed).length
+
   return {
     version: 1,
     exportedAt: new Date().toISOString(),
@@ -74,6 +101,13 @@ export function createBridgeExport(state: ExportableState): MachBridgeFile {
       createdAt,
       processed,
     })),
+    summary: {
+      nextTask: nextTask ? { title: nextTask.title, priority: nextTask.priority } : null,
+      pomodorosToday,
+      focusTodayMinutes,
+      focusDailyGoalMinutes: state.focus.dailyGoalMinutes,
+      inboxPending,
+    },
   }
 }
 
