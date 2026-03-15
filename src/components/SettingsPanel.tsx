@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout, Bell, Zap } from "lucide-react";
+import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout, Bell, Zap, Inbox } from "lucide-react";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 import { useSettingsStore, useStore } from "@/store/useStore";
@@ -293,6 +293,23 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
             <Button variant="outline" className="w-full justify-start" onClick={handleImport}>
               <Download className="w-4 h-4" />
               Import Data
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                useStore.getState().addInboxItem({
+                  title: "Test item from Watch",
+                  source: "watch",
+                  createdAt: new Date().toISOString(),
+                  processed: false,
+                });
+                toast("Test inbox item added");
+              }}
+            >
+              <Inbox className="w-4 h-4" />
+              Add Test Inbox Item
             </Button>
 
             {/* Hidden file input for import */}
