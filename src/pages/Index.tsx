@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAutoExport } from "@/hooks/useAutoExport";
 import { Header } from "@/components/Header";
 import { LayoutSelector, LayoutType } from "@/components/LayoutSelector";
 import { ModuleSelector, ModuleType } from "@/components/ModuleSelector";
@@ -11,6 +12,7 @@ import { EmptyModule } from "@/components/modules/EmptyModule";
 import { useLayoutStore } from "@/store/useStore";
 
 const Index = () => {
+  useAutoExport();
   const { layout, setLayout, setModuleInSlot, removeModuleFromSlot } = useLayoutStore();
 
   // UI transients — not persisted
