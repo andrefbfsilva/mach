@@ -3,11 +3,10 @@ import { Button } from "../ui/button";
 import { useTaskStore, usePomodoroStore, useFocusStore, useInboxStore } from "@/store/useStore";
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const;
-const TODAY = new Date().toDateString();
 
-function todayFocusMinutes(sessions: { startedAt: string; durationMinutes: number; endedAt: string | null }[]) {
+function todayFocusMinutes(sessions: { startedAt: string; durationMinutes: number; endedAt: string | null }[], today: string) {
   return sessions
-    .filter((s) => s.endedAt !== null && new Date(s.startedAt).toDateString() === TODAY)
+    .filter((s) => s.endedAt !== null && new Date(s.startedAt).toDateString() === today)
     .reduce((acc, s) => acc + s.durationMinutes, 0);
 }
 
@@ -29,7 +28,8 @@ export function WatchSummaryModule() {
   const nextTask = pending.sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])[0] ?? null;
 
   // Focus stats
-  const focusMin = todayFocusMinutes(focus.sessions);
+  const today = new Date().toDateString();
+  const focusMin = todayFocusMinutes(focus.sessions, today);
   const goalMin = focus.dailyGoalMinutes;
   const goalReached = focusMin >= goalMin;
 

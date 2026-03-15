@@ -5,11 +5,9 @@ import { useFocusStore } from "@/store/useStore";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useSound } from "@/hooks/useSound";
 
-const TODAY = new Date().toDateString();
-
-function todaysSessions(sessions: { startedAt: string; durationMinutes: number; endedAt: string | null }[]) {
+function todaysSessions(sessions: { startedAt: string; durationMinutes: number; endedAt: string | null }[], today: string) {
   return sessions.filter(
-    (s) => s.endedAt !== null && new Date(s.startedAt).toDateString() === TODAY
+    (s) => s.endedAt !== null && new Date(s.startedAt).toDateString() === today
   );
 }
 
@@ -93,7 +91,8 @@ export function FlightModeModule() {
     setEditingGoal(false);
   };
 
-  const todaySess = todaysSessions(focus.sessions);
+  const today = new Date().toDateString();
+  const todaySess = todaysSessions(focus.sessions, today);
   const weekSess = thisWeekSessions(focus.sessions);
   const todayMin = sumMinutes(todaySess);
   const weekMin = sumMinutes(weekSess);
