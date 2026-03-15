@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Gauge, Settings } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -6,6 +7,18 @@ interface HeaderProps {
 }
 
 export function Header({ onSettingsClick }: HeaderProps) {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   return (
     <header className="glass h-16 flex items-center justify-between px-6 border-b border-primary/30">
@@ -24,6 +37,16 @@ export function Header({ onSettingsClick }: HeaderProps) {
 
       {/* Status Indicators */}
       <div className="flex items-center gap-4">
+        {/* Connectivity */}
+        <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isOnline ? "bg-success pulse-glow" : "bg-yellow-400"
+            }`}
+          />
+          <span>{isOnline ? "ONLINE" : "OFFLINE"}</span>
+        </div>
+
         {/* Clock */}
         <div className="text-sm font-mono text-muted-foreground">
           {new Date().toLocaleTimeString("en-US", {
