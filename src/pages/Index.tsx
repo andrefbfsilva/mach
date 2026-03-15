@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAutoExport } from "@/hooks/useAutoExport";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { Header } from "@/components/Header";
@@ -13,12 +13,17 @@ import { EmptyModule } from "@/components/modules/EmptyModule";
 import { FlightModeModule } from "@/components/modules/FlightModeModule";
 import { InboxModule } from "@/components/modules/InboxModule";
 import { WatchSummaryModule } from "@/components/modules/WatchSummaryModule";
-import { useLayoutStore } from "@/store/useStore";
+import { useLayoutStore, useStore } from "@/store/useStore";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 const Index = () => {
   useAutoExport();
   useWakeLock();
+
+  // Prune focus sessions older than 90 days once per session
+  useEffect(() => {
+    useStore.getState().pruneOldSessions();
+  }, []);
   const { layout, setLayout, setModuleInSlot, removeModuleFromSlot } = useLayoutStore();
 
   // UI transients — not persisted
