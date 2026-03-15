@@ -1,7 +1,7 @@
 import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout } from "lucide-react";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
-import { useState } from "react";
+import { useSettingsStore } from "@/store/useStore";
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -9,9 +9,7 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
+  const { settings, toggleSound, toggleHaptic, toggleWakeLock } = useSettingsStore();
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -55,8 +53,8 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
                 </div>
               </div>
               <Switch
-                checked={soundEnabled}
-                onCheckedChange={setSoundEnabled}
+                checked={settings.soundEnabled}
+                onCheckedChange={toggleSound}
               />
             </div>
 
@@ -71,8 +69,8 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
                 </div>
               </div>
               <Switch
-                checked={hapticEnabled}
-                onCheckedChange={setHapticEnabled}
+                checked={settings.hapticEnabled}
+                onCheckedChange={toggleHaptic}
               />
             </div>
           </div>
@@ -94,8 +92,8 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
                 </div>
               </div>
               <Switch
-                checked={wakeLockEnabled}
-                onCheckedChange={setWakeLockEnabled}
+                checked={settings.wakeLockEnabled}
+                onCheckedChange={toggleWakeLock}
               />
             </div>
           </div>
