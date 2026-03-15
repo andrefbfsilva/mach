@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Clock, Globe, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { useClockStore } from "@/store/useStore";
@@ -94,24 +94,36 @@ export function DualClockModule() {
     return () => clearInterval(timer);
   }, []);
 
+  const timeFormatter = useMemo(() => {
+    return (timezone: string) =>
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: timezone,
+        hour12: !clock.is24Hour,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+  }, [clock.is24Hour]);
+
+  const dateFormatter = useMemo(() => {
+    return (timezone: string) =>
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: timezone,
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+  }, []);
+
   const formatTime = (date: Date, timezone?: string) => {
-    return date.toLocaleTimeString("en-GB", {
-      timeZone: timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
-      hour12: !clock.is24Hour,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
+    const tz = timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return timeFormatter(tz).format(date);
   };
 
   const formatDate = (date: Date, timezone?: string) => {
-    return date.toLocaleDateString("en-GB", {
-      timeZone: timezone,
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    const tz = timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return dateFormatter(tz).format(date);
   };
 
   // DST-aware diff using real UTC offsets
