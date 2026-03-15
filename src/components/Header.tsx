@@ -8,6 +8,7 @@ interface HeaderProps {
 
 export function Header({ onSettingsClick }: HeaderProps) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [time, setTime] = useState(new Date());
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -18,6 +19,11 @@ export function Header({ onSettingsClick }: HeaderProps) {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 60000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
@@ -49,7 +55,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
 
         {/* Clock */}
         <div className="text-sm font-mono text-muted-foreground">
-          {new Date().toLocaleTimeString("en-US", {
+          {time.toLocaleTimeString("en-US", {
             hour12: false,
             hour: "2-digit",
             minute: "2-digit",
