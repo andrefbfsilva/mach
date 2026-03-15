@@ -183,6 +183,7 @@ const Index = () => {
             setShowModuleSelector(false);
             setSelectedSlot(null);
           }}
+          usedModules={Object.values(layout.modules)}
         />
       )}
 
