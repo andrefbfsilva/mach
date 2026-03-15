@@ -1,24 +1,29 @@
 import { useState } from "react";
-import { CheckCircle2, Circle, Plus, Trash2, GripVertical } from "lucide-react";
+import { CheckCircle2, Circle, Plus, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useTaskStore } from "@/store/useStore";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useSound } from "@/hooks/useSound";
+import { toast } from "sonner";
+import type { Task } from "@/store/useStore";
 
 export function TaskModule() {
-  const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
+  const { tasks, addTask, toggleTask, deleteTask, clearCompleted } = useTaskStore();
   const { trigger } = useHaptic();
   const { play } = useSound();
   const [newTask, setNewTask] = useState("");
   const [showInput, setShowInput] = useState(false);
+  const [newPriority, setNewPriority] = useState<"high" | "medium" | "low">("medium");
+  const [deletedTask, setDeletedTask] = useState<Task | null>(null);
 
   const handleAddTask = () => {
     if (newTask.trim()) {
-      addTask({ title: newTask.trim(), priority: "medium" });
+      addTask({ title: newTask.trim(), priority: newPriority });
       trigger("tap");
       play("beep");
       setNewTask("");
+      setNewPriority("medium");
       setShowInput(false);
     }
   };
@@ -33,8 +38,20 @@ export function TaskModule() {
   };
 
   const handleDeleteTask = (id: string) => {
+    const task = tasks.items.find((t) => t.id === id);
+    if (!task) return;
     trigger("heavy");
+    setDeletedTask(task);
     deleteTask(id);
+    toast("Task deleted", {
+      action: {
+        label: "UNDO",
+        onClick: () => {
+          addTask({ title: task.title, priority: task.priority });
+        },
+      },
+      duration: 5000,
+    });
   };
 
   const completedCount = tasks.items.filter((t) => t.completed).length;
@@ -44,6 +61,15 @@ export function TaskModule() {
     medium: "border-primary bg-primary/20",
     low: "border-accent bg-accent/20",
   };
+
+  const priorityBtnBase = "px-2 py-1 text-xs font-semibold rounded border transition-colors";
+  const priorityBtnActive = {
+    high: "bg-destructive/20 border-destructive text-destructive",
+    medium: "bg-primary/20 border-primary text-primary",
+    low: "bg-accent/20 border-accent text-accent",
+  };
+  const priorityBtnInactive =
+    "bg-transparent border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground";
 
   return (
     <div className="module-panel rounded-lg p-6 h-full flex flex-col">
@@ -55,14 +81,29 @@ export function TaskModule() {
             {completedCount}/{tasks.items.length} COMPLETE
           </p>
         </div>
-        <Button
-          variant="cockpit"
-          size="sm"
-          onClick={() => setShowInput(true)}
-        >
-          <Plus className="w-4 h-4" />
-          ADD
-        </Button>
+        <div className="flex items-center gap-2">
+          {completedCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                trigger("heavy");
+                clearCompleted();
+                toast("Completed tasks cleared");
+              }}
+            >
+              CLEAR DONE
+            </Button>
+          )}
+          <Button
+            variant="cockpit"
+            size="sm"
+            onClick={() => setShowInput(true)}
+          >
+            <Plus className="w-4 h-4" />
+            ADD
+          </Button>
+        </div>
       </div>
 
       {/* Progress Bar */}
@@ -75,21 +116,39 @@ export function TaskModule() {
 
       {/* New Task Input */}
       {showInput && (
-        <div className="flex gap-2 mb-4 animate-fade-in">
-          <Input
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
-            placeholder="Enter task..."
-            className="bg-secondary border-primary/30 text-foreground"
-            autoFocus
-          />
-          <Button variant="cockpit" size="sm" onClick={handleAddTask}>
-            ADD
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setShowInput(false)}>
-            ✕
-          </Button>
+        <div className="mb-4 animate-fade-in space-y-2">
+          {/* Priority selector */}
+          <div className="flex gap-2">
+            {(["high", "medium", "low"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setNewPriority(p)}
+                className={`${priorityBtnBase} ${newPriority === p ? priorityBtnActive[p] : priorityBtnInactive}`}
+              >
+                {p === "high" ? "H" : p === "medium" ? "M" : "L"}
+              </button>
+            ))}
+            <span className="text-xs text-muted-foreground font-mono self-center ml-1">
+              {newPriority.toUpperCase()}
+            </span>
+          </div>
+          {/* Input row */}
+          <div className="flex gap-2">
+            <Input
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+              placeholder="Enter task..."
+              className="bg-secondary border-primary/30 text-foreground"
+              autoFocus
+            />
+            <Button variant="cockpit" size="sm" onClick={handleAddTask}>
+              ADD
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowInput(false)}>
+              ✕
+            </Button>
+          </div>
         </div>
       )}
 
@@ -98,9 +157,8 @@ export function TaskModule() {
         {tasks.items.map((task) => (
           <div
             key={task.id}
-            className={`group flex items-center gap-3 p-3 rounded bg-secondary border-l-4 ${priorityColors[task.priority]} hover:bg-secondary/80 transition-all`}
+            className={`flex items-center gap-3 p-3 rounded bg-secondary border-l-4 ${priorityColors[task.priority]} hover:bg-secondary/80 transition-all`}
           >
-            <GripVertical className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" />
             <button
               onClick={() => handleToggleTask(task.id)}
               className="flex-shrink-0"
@@ -122,9 +180,9 @@ export function TaskModule() {
             </span>
             <button
               onClick={() => handleDeleteTask(task.id)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              className="opacity-30 hover:opacity-100 transition-opacity"
             >
-              <Trash2 className="w-4 h-4 text-destructive hover:text-destructive/80" />
+              <Trash2 className="w-4 h-4 text-destructive" />
             </button>
           </div>
         ))}
