@@ -5,6 +5,7 @@ import { Input } from "../ui/input";
 import { useTaskStore } from "@/store/useStore";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useSound } from "@/hooks/useSound";
+import { useKeyboardScroll } from "@/hooks/useKeyboardScroll";
 import { toast } from "sonner";
 import type { Task } from "@/store/useStore";
 
@@ -12,6 +13,7 @@ export function TaskModule() {
   const { tasks, addTask, toggleTask, deleteTask, clearCompleted } = useTaskStore();
   const { trigger } = useHaptic();
   const { play } = useSound();
+  const scrollToInput = useKeyboardScroll();
   const [newTask, setNewTask] = useState("");
   const [showInput, setShowInput] = useState(false);
   const [newPriority, setNewPriority] = useState<"high" | "medium" | "low">("medium");
@@ -138,6 +140,7 @@ export function TaskModule() {
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+              onFocus={scrollToInput}
               placeholder="Enter task..."
               className="bg-secondary border-primary/30 text-foreground"
               autoFocus

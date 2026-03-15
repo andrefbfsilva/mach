@@ -3,6 +3,7 @@ import { FileText, Bold, Italic, List, Link as LinkIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useNotesStore } from "@/store/useStore";
+import { useKeyboardScroll } from "@/hooks/useKeyboardScroll";
 
 export function NotesModule() {
   const { notes, updateNotes } = useNotesStore();
@@ -10,6 +11,7 @@ export function NotesModule() {
   const [isSynced, setIsSynced] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const scrollToInput = useKeyboardScroll();
 
   // Keep localContent in sync if store updates externally
   useEffect(() => {
@@ -109,6 +111,7 @@ export function NotesModule() {
         ref={textareaRef}
         value={localContent}
         onChange={(e) => handleContentChange(e.target.value)}
+        onFocus={scrollToInput}
         className="flex-1 bg-secondary border-primary/30 text-foreground font-mono text-sm resize-none focus-visible:ring-primary"
         placeholder="Start writing your notes..."
       />

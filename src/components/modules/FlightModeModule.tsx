@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { useFocusStore, useStore } from "@/store/useStore";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useSound } from "@/hooks/useSound";
+import { useKeyboardScroll } from "@/hooks/useKeyboardScroll";
 
 function todaysSessions(sessions: { startedAt: string; durationMinutes: number; endedAt: string | null }[], today: string) {
   return sessions.filter(
@@ -35,6 +36,7 @@ export function FlightModeModule() {
   const { focus, addFocusSession, endFocusSession, setDailyGoal } = useFocusStore();
   const { trigger } = useHaptic();
   const { play } = useSound();
+  const scrollToInput = useKeyboardScroll();
 
   const [isActive, setIsActive] = useState(false);
   const [activeFocusId, setActiveFocusId] = useState<string | null>(null);
@@ -130,6 +132,7 @@ export function FlightModeModule() {
                 onChange={(e) => setGoalInput(e.target.value)}
                 onBlur={handleGoalSave}
                 onKeyDown={(e) => e.key === "Enter" && handleGoalSave()}
+                onFocus={scrollToInput}
                 className="w-14 bg-background border border-primary/30 rounded px-1 text-xs text-center"
                 min="1"
               />
