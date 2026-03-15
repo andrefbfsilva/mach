@@ -2,52 +2,22 @@ import { useState } from "react";
 import { CheckCircle2, Circle, Plus, Trash2, GripVertical } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-  priority: "high" | "medium" | "low";
-}
+import { useTaskStore } from "@/store/useStore";
 
 export function TaskModule() {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "1", title: "Complete mission briefing", completed: true, priority: "high" },
-    { id: "2", title: "Review flight plan", completed: false, priority: "high" },
-    { id: "3", title: "System diagnostics check", completed: false, priority: "medium" },
-  ]);
+  const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
   const [newTask, setNewTask] = useState("");
   const [showInput, setShowInput] = useState(false);
 
-  const addTask = () => {
+  const handleAddTask = () => {
     if (newTask.trim()) {
-      setTasks([
-        ...tasks,
-        {
-          id: Date.now().toString(),
-          title: newTask,
-          completed: false,
-          priority: "medium",
-        },
-      ]);
+      addTask({ title: newTask.trim(), priority: "medium" });
       setNewTask("");
       setShowInput(false);
     }
   };
 
-  const toggleTask = (id: string) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-  };
-
-  const completedCount = tasks.filter((t) => t.completed).length;
+  const completedCount = tasks.items.filter((t) => t.completed).length;
 
   const priorityColors = {
     high: "border-destructive bg-destructive/20",
@@ -62,7 +32,7 @@ export function TaskModule() {
         <div>
           <h3 className="text-lg font-semibold">TASK MANAGER</h3>
           <p className="text-xs font-mono text-muted-foreground">
-            {completedCount}/{tasks.length} COMPLETE
+            {completedCount}/{tasks.items.length} COMPLETE
           </p>
         </div>
         <Button
@@ -79,7 +49,7 @@ export function TaskModule() {
       <div className="w-full h-2 bg-secondary rounded-full mb-4 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-          style={{ width: `${(completedCount / tasks.length) * 100}%` }}
+          style={{ width: `${tasks.items.length > 0 ? (completedCount / tasks.items.length) * 100 : 0}%` }}
         />
       </div>
 
@@ -89,12 +59,12 @@ export function TaskModule() {
           <Input
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && addTask()}
+            onKeyPress={(e) => e.key === "Enter" && handleAddTask()}
             placeholder="Enter task..."
             className="bg-secondary border-primary/30 text-foreground"
             autoFocus
           />
-          <Button variant="cockpit" size="sm" onClick={addTask}>
+          <Button variant="cockpit" size="sm" onClick={handleAddTask}>
             ADD
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setShowInput(false)}>
@@ -105,7 +75,7 @@ export function TaskModule() {
 
       {/* Task List */}
       <div className="flex-1 overflow-y-auto space-y-2">
-        {tasks.map((task) => (
+        {tasks.items.map((task) => (
           <div
             key={task.id}
             className={`group flex items-center gap-3 p-3 rounded bg-secondary border-l-4 ${priorityColors[task.priority]} hover:bg-secondary/80 transition-all`}
@@ -144,11 +114,11 @@ export function TaskModule() {
       <div className="mt-4 flex items-center gap-2 text-xs font-mono">
         <div
           className={`w-2 h-2 rounded-full ${
-            completedCount === tasks.length ? "bg-success" : "bg-primary"
+            tasks.items.length > 0 && completedCount === tasks.items.length ? "bg-success" : "bg-primary"
           } pulse-glow`}
         />
         <span className="text-muted-foreground">
-          {completedCount === tasks.length
+          {tasks.items.length > 0 && completedCount === tasks.items.length
             ? "ALL SYSTEMS GO"
             : "TASKS PENDING"}
         </span>
