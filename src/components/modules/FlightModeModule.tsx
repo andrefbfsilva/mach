@@ -132,7 +132,6 @@ export function FlightModeModule() {
                 onKeyDown={(e) => e.key === "Enter" && handleGoalSave()}
                 className="w-14 bg-background border border-primary/30 rounded px-1 text-xs text-center"
                 min="1"
-                autoFocus
               />
               <span>min</span>
             </div>
