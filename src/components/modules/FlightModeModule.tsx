@@ -141,7 +141,7 @@ export function FlightModeModule() {
           ) : (
             <button
               onClick={() => setEditingGoal(true)}
-              className="hover:text-accent transition-colors"
+              className="hover:text-accent transition-colors cursor-pointer"
               title="Click to edit daily goal"
             >
               GOAL: {goalMin}m

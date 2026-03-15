@@ -190,7 +190,7 @@ export function DualClockModule() {
                 setShowTimezoneSelector(!showTimezoneSelector);
                 setShowAddTimezone(false);
               }}
-              className="font-mono hover:text-accent transition-colors"
+              className="font-mono hover:text-accent transition-colors cursor-pointer"
             >
               {selectedTZ.name.toUpperCase()} {selectedTZ.emoji}
             </button>

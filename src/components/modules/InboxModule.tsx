@@ -143,7 +143,7 @@ export function InboxModule() {
           {processedCount > 0 && (
             <button
               onClick={() => clearProcessedInbox()}
-              className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-destructive transition-colors"
+              className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
             >
               <Trash2 className="w-3 h-3" />
               CLEAR HISTORY
