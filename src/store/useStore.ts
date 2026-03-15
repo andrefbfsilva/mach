@@ -115,13 +115,13 @@ export const useStore = create<MachState>()(
       },
       notes: { content: "", lastModified: new Date().toISOString() },
       clock: {
-        selectedTimezone: "London",
+        selectedTimezone: "Europe/London",
         is24Hour: true,
         customTimezones: [],
         lastModified: new Date().toISOString(),
       },
       settings: { soundEnabled: false, hapticEnabled: false, wakeLockEnabled: false },
-      layout: { selectedLayout: null, modules: {} },
+      layout: { selectedLayout: "2-modules", modules: { 0: "pomodoro", 1: "tasks" } },
       focus: { sessions: [], dailyGoalMinutes: 240, lastModified: new Date().toISOString() },
       inbox: { items: [], lastModified: new Date().toISOString() },
 
