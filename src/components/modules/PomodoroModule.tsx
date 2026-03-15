@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Timer, SkipForward, Settings } from "lucide-react";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
-import { usePomodoroStore } from "@/store/useStore";
+import { usePomodoroStore, useFocusStore } from "@/store/useStore";
 
 type PomodoroPhase = "work" | "shortBreak" | "longBreak";
 
 export function PomodoroModule() {
   const { pomodoro, incrementPomodoro, resetCycle, updatePomodoroSettings } = usePomodoroStore();
+  const { addFocusSession } = useFocusStore();
 
   // Timer state — transient, not persisted
   const [minutes, setMinutes] = useState(pomodoro.workDuration);
@@ -76,6 +77,10 @@ export function PomodoroModule() {
       const nextCycleCount = pomodoro.cycleCount + 1;
 
       incrementPomodoro();
+
+      const endedAt = new Date().toISOString();
+      const startedAt = new Date(Date.now() - pomodoro.workDuration * 60 * 1000).toISOString();
+      addFocusSession({ startedAt, endedAt, durationMinutes: pomodoro.workDuration, type: "pomodoro" });
 
       if (nextCycleCount >= 4) {
         setPhase("longBreak");
