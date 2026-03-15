@@ -1,6 +1,7 @@
 import { ListTodo, Timer, Zap, Inbox, Download } from "lucide-react";
 import { Button } from "../ui/button";
 import { useTaskStore, usePomodoroStore, useFocusStore, useInboxStore } from "@/store/useStore";
+import { toast } from "sonner";
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const;
 
@@ -38,7 +39,10 @@ export function WatchSummaryModule() {
 
   const handleExportToWatch = () => {
     const cached = localStorage.getItem("mach-bridge-latest");
-    if (!cached) return;
+    if (!cached) {
+      toast.error("No data to export yet");
+      return;
+    }
     const blob = new Blob([cached], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -46,6 +50,7 @@ export function WatchSummaryModule() {
     a.download = "mach-bridge-latest.json";
     a.click();
     URL.revokeObjectURL(url);
+    toast("Exported to Watch");
   };
 
   return (
