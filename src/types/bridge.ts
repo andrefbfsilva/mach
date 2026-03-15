@@ -2,6 +2,7 @@ import { Task, FocusSession, InboxItem } from '@/store/useStore'
 
 export interface MachBridgeFile {
   version: 1
+  appVersion: string
   exportedAt: string
   device: "ipad" | "watch" | "iphone"
   tasks: {
@@ -75,6 +76,7 @@ export function createBridgeExport(state: ExportableState): MachBridgeFile {
 
   return {
     version: 1,
+    appVersion: "0.1.0",
     exportedAt: new Date().toISOString(),
     device: "ipad",
     tasks: {
