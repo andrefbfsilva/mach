@@ -48,7 +48,7 @@ interface MachState {
   }
   settings: { soundEnabled: boolean; hapticEnabled: boolean; wakeLockEnabled: boolean }
   layout: { selectedLayout: LayoutType | null; modules: Record<number, ModuleType> }
-  focus: { sessions: FocusSession[]; lastModified: string }
+  focus: { sessions: FocusSession[]; dailyGoalMinutes: number; lastModified: string }
   inbox: { items: InboxItem[]; lastModified: string }
 
   // Task actions
@@ -90,6 +90,7 @@ interface MachState {
   // Focus actions
   addFocusSession: (session: Omit<FocusSession, 'id'>) => void
   endFocusSession: (id: string) => void
+  setDailyGoal: (minutes: number) => void
 
   // Inbox actions
   addInboxItem: (item: Omit<InboxItem, 'id'>) => void
@@ -125,7 +126,7 @@ export const useStore = create<MachState>()(
       },
       settings: { soundEnabled: false, hapticEnabled: false, wakeLockEnabled: false },
       layout: { selectedLayout: null, modules: {} },
-      focus: { sessions: [], lastModified: new Date().toISOString() },
+      focus: { sessions: [], dailyGoalMinutes: 240, lastModified: new Date().toISOString() },
       inbox: { items: [], lastModified: new Date().toISOString() },
 
       addTask: ({ title, priority }) => {
@@ -334,6 +335,12 @@ export const useStore = create<MachState>()(
         }))
       },
 
+      setDailyGoal: (minutes) => {
+        set((s) => ({
+          focus: { ...s.focus, dailyGoalMinutes: minutes, lastModified: new Date().toISOString() },
+        }))
+      },
+
       addInboxItem: (item) => {
         const newItem: InboxItem = {
           id: Date.now().toString(),
@@ -444,6 +451,7 @@ export const useFocusStore = () =>
     focus: s.focus,
     addFocusSession: s.addFocusSession,
     endFocusSession: s.endFocusSession,
+    setDailyGoal: s.setDailyGoal,
   }))
 
 export const useInboxStore = () =>
