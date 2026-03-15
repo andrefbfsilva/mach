@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useShallow } from 'zustand/react/shallow'
 import { LayoutType } from '@/components/LayoutSelector'
 import { ModuleType } from '@/components/ModuleSelector'
 
@@ -50,6 +51,7 @@ interface MachState {
   layout: { selectedLayout: LayoutType | null; modules: Record<number, ModuleType> }
   focus: { sessions: FocusSession[]; dailyGoalMinutes: number; lastModified: string }
   inbox: { items: InboxItem[]; lastModified: string }
+  bridge: { lastExportedAt: string | null }
 
   // Task actions
   addTask: (task: { title: string; priority: "high" | "medium" | "low" }) => void
@@ -98,6 +100,11 @@ interface MachState {
   clearProcessedInbox: () => void
   importInboxItems: (items: InboxItem[]) => void
 
+  // Bridge actions
+  markExported: () => void
+
+  // Focus maintenance
+  pruneOldSessions: () => void
 }
 
 export const useStore = create<MachState>()(
@@ -124,6 +131,7 @@ export const useStore = create<MachState>()(
       layout: { selectedLayout: "2-modules", modules: { 0: "pomodoro", 1: "tasks" } },
       focus: { sessions: [], dailyGoalMinutes: 240, lastModified: new Date().toISOString() },
       inbox: { items: [], lastModified: new Date().toISOString() },
+      bridge: { lastExportedAt: null },
 
       addTask: ({ title, priority }) => {
         const newTask: Task = {
@@ -384,6 +392,29 @@ export const useStore = create<MachState>()(
         })
       },
 
+      markExported: () => {
+        set(() => ({
+          bridge: { lastExportedAt: new Date().toISOString() },
+        }))
+      },
+
+      pruneOldSessions: () => {
+        const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000
+        set((s) => {
+          const filtered = s.focus.sessions.filter(
+            (session) => new Date(session.startedAt).getTime() >= cutoff
+          )
+          if (filtered.length === s.focus.sessions.length) return s
+          return {
+            focus: {
+              ...s.focus,
+              sessions: filtered,
+              lastModified: new Date().toISOString(),
+            },
+          }
+        })
+      },
+
     }),
     {
       name: 'mach-store',
@@ -418,67 +449,73 @@ export const useStore = create<MachState>()(
 
 // Convenience selectors
 export const useTaskStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     tasks: s.tasks,
     addTask: s.addTask,
     toggleTask: s.toggleTask,
     deleteTask: s.deleteTask,
     reorderTasks: s.reorderTasks,
     clearCompleted: s.clearCompleted,
-  }))
+  })))
 
 export const usePomodoroStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     pomodoro: s.pomodoro,
     incrementPomodoro: s.incrementPomodoro,
     resetCycle: s.resetCycle,
     updatePomodoroSettings: s.updatePomodoroSettings,
-  }))
+  })))
 
 export const useNotesStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     notes: s.notes,
     updateNotes: s.updateNotes,
-  }))
+  })))
 
 export const useClockStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     clock: s.clock,
     setSelectedTimezone: s.setSelectedTimezone,
     toggleTimeFormat: s.toggleTimeFormat,
     addCustomTimezone: s.addCustomTimezone,
     removeCustomTimezone: s.removeCustomTimezone,
-  }))
+  })))
 
 export const useSettingsStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     settings: s.settings,
     toggleSound: s.toggleSound,
     toggleHaptic: s.toggleHaptic,
     toggleWakeLock: s.toggleWakeLock,
-  }))
+  })))
 
 export const useLayoutStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     layout: s.layout,
     setLayout: s.setLayout,
     setModuleInSlot: s.setModuleInSlot,
     removeModuleFromSlot: s.removeModuleFromSlot,
-  }))
+  })))
 
 export const useFocusStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     focus: s.focus,
     addFocusSession: s.addFocusSession,
     endFocusSession: s.endFocusSession,
     setDailyGoal: s.setDailyGoal,
-  }))
+  })))
 
 export const useInboxStore = () =>
-  useStore((s) => ({
+  useStore(useShallow((s) => ({
     inbox: s.inbox,
     addInboxItem: s.addInboxItem,
     markInboxProcessed: s.markInboxProcessed,
     clearProcessedInbox: s.clearProcessedInbox,
     importInboxItems: s.importInboxItems,
-  }))
+  })))
+
+export const useBridgeStore = () =>
+  useStore(useShallow((s) => ({
+    bridge: s.bridge,
+    markExported: s.markExported,
+  })))
