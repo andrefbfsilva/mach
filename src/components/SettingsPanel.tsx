@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 import { useSettingsStore, useStore } from "@/store/useStore";
 import { createBridgeExport, parseBridgeImport, mergeBridgeInbox } from "@/types/bridge";
+import { isWakeLockSupported } from "@/hooks/useWakeLock";
 import { toast } from "sonner";
 
 interface SettingsPanelProps {
@@ -235,15 +236,21 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
               <div className="flex items-center gap-3">
                 <Monitor className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="font-medium">Wake Lock</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">Wake Lock</p>
+                    {settings.wakeLockEnabled && isWakeLockSupported && (
+                      <div className="w-2 h-2 rounded-full bg-success pulse-glow" />
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Keep screen awake
+                    {isWakeLockSupported ? "Keep screen awake" : "Not supported in this browser"}
                   </p>
                 </div>
               </div>
               <Switch
                 checked={settings.wakeLockEnabled}
                 onCheckedChange={toggleWakeLock}
+                disabled={!isWakeLockSupported}
               />
             </div>
           </div>
