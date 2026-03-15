@@ -63,7 +63,12 @@ export function ModuleSelector({ onSelectModule, onClose, usedModules = [] }: Mo
   ];
 
   return (
-    <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+    <div
+      className="fixed inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      tabIndex={-1}
+      ref={(el) => el?.focus()}
+    >
       <div className="glass rounded-lg p-8 max-w-3xl w-full mx-4 animate-fade-in">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-2">SELECT MODULE</h2>

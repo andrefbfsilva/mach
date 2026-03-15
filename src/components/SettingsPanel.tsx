@@ -137,7 +137,12 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex">
+    <div
+      className="fixed inset-0 z-50 flex"
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      tabIndex={-1}
+      ref={(el) => el?.focus()}
+    >
       {/* Backdrop */}
       <div
         className="flex-1 bg-background/80"
