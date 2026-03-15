@@ -166,17 +166,17 @@ const Index = () => {
       case "3-modules-a":
         return (
           <div className={layoutClasses}>
-            <div className="row-span-2">{renderModule(0)}</div>
-            {renderModule(1)}
-            {renderModule(2)}
+            <div className="col-start-1 row-start-1 row-span-2">{renderModule(0)}</div>
+            <div className="col-start-2 row-start-1">{renderModule(1)}</div>
+            <div className="col-start-2 row-start-2">{renderModule(2)}</div>
           </div>
         );
       case "3-modules-b":
         return (
           <div className={layoutClasses}>
-            {renderModule(0)}
-            {renderModule(1)}
-            <div className="row-span-2">{renderModule(2)}</div>
+            <div className="col-start-1 row-start-1">{renderModule(0)}</div>
+            <div className="col-start-1 row-start-2">{renderModule(1)}</div>
+            <div className="col-start-2 row-start-1 row-span-2">{renderModule(2)}</div>
           </div>
         );
       case "4-modules":
