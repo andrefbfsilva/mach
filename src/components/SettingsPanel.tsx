@@ -1,12 +1,37 @@
-import { useState } from "react";
-import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout, Bell } from "lucide-react";
+import { useRef, useState } from "react";
+import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout, Bell, Zap } from "lucide-react";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
-import { useSettingsStore } from "@/store/useStore";
+import { useSettingsStore, useStore } from "@/store/useStore";
+import { createBridgeExport, parseBridgeImport, mergeBridgeInbox } from "@/types/bridge";
+import { toast } from "sonner";
 
 interface SettingsPanelProps {
   onClose: () => void;
   onChangeLayout?: () => void;
+}
+
+function makeTimestamp(): string {
+  const now = new Date();
+  return (
+    now.getFullYear().toString() +
+    (now.getMonth() + 1).toString().padStart(2, "0") +
+    now.getDate().toString().padStart(2, "0") +
+    "-" +
+    now.getHours().toString().padStart(2, "0") +
+    now.getMinutes().toString().padStart(2, "0") +
+    now.getSeconds().toString().padStart(2, "0")
+  );
+}
+
+function downloadJson(json: string, filename: string) {
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
@@ -14,11 +39,99 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     'Notification' in window ? Notification.permission : 'denied'
   );
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleRequestNotifications = async () => {
     if (!('Notification' in window)) return;
     const result = await Notification.requestPermission();
     setNotifPermission(result);
+  };
+
+  const handleExport = async () => {
+    const state = useStore.getState();
+    const bridge = createBridgeExport(state);
+    const json = JSON.stringify(bridge, null, 2);
+    const filename = `mach-state-${makeTimestamp()}.json`;
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fileHandle = await (window as any).showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: "JSON", accept: { "application/json": [".json"] } }],
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        toast("State exported successfully");
+        return;
+      } catch {
+        // User cancelled or API not supported — fall through to blob download
+      }
+    }
+
+    downloadJson(json, filename);
+    toast("State exported successfully");
+  };
+
+  const handleImport = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const json = ev.target?.result as string;
+      const bridge = parseBridgeImport(json);
+
+      if (!bridge) {
+        toast.error("Invalid MACH bridge file");
+        return;
+      }
+
+      const currentState = useStore.getState();
+      const { tasksToAdd, pomodorosCompleted, sessionsToAdd, inboxItemsToImport } =
+        mergeBridgeInbox(currentState, bridge);
+
+      useStore.setState((s) => ({
+        tasks: {
+          items: [...s.tasks.items, ...tasksToAdd],
+          lastModified: new Date().toISOString(),
+        },
+        pomodoro: {
+          ...s.pomodoro,
+          pomodorosCompleted,
+          lastModified: new Date().toISOString(),
+        },
+        focus: {
+          sessions: [...s.focus.sessions, ...sessionsToAdd],
+          lastModified: new Date().toISOString(),
+        },
+      }));
+
+      currentState.importInboxItems(inboxItemsToImport);
+
+      toast(
+        `Imported: ${tasksToAdd.length} new tasks, ${inboxItemsToImport.length} inbox items, ${sessionsToAdd.length} focus sessions`
+      );
+    };
+    reader.readAsText(file);
+
+    // Reset so same file can be re-imported
+    e.target.value = "";
+  };
+
+  const handleQuickExport = () => {
+    const cached = localStorage.getItem("mach-bridge-latest");
+    if (!cached) {
+      toast.error("No cached state available");
+      return;
+    }
+    downloadJson(cached, `mach-bridge-latest.json`);
+    toast("Quick export downloaded");
   };
 
   return (
@@ -160,15 +273,29 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
               Data Management
             </h3>
 
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleExport}>
               <Upload className="w-4 h-4" />
               Export Data
             </Button>
 
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleQuickExport}>
+              <Zap className="w-4 h-4" />
+              Quick Export
+            </Button>
+
+            <Button variant="outline" className="w-full justify-start" onClick={handleImport}>
               <Download className="w-4 h-4" />
               Import Data
             </Button>
+
+            {/* Hidden file input for import */}
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleFileChange}
+            />
           </div>
 
           {/* About */}
