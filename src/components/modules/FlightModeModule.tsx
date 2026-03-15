@@ -162,7 +162,7 @@ export function FlightModeModule() {
           />
           <button
             onClick={handleToggle}
-            className={`relative w-28 h-28 rounded-full border-4 font-mono font-bold text-sm tracking-widest transition-all duration-300 ${
+            className={`relative w-28 h-28 rounded-full border-4 font-mono font-bold text-sm tracking-widest transition-all duration-300 cockpit-press ${
               isActive
                 ? "bg-accent/20 border-accent text-accent shadow-[0_0_30px_hsl(180_100%_50%_/_0.5)] animate-pulse"
                 : "bg-secondary border-muted text-muted-foreground hover:border-primary/50 hover:text-primary"

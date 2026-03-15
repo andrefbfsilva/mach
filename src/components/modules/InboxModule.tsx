@@ -96,7 +96,7 @@ export function InboxModule() {
                     <Button
                       variant="cockpit"
                       size="sm"
-                      className="h-6 px-2 text-[10px]"
+                      className="h-6 px-2 text-[10px] cockpit-press"
                       onClick={() => handleToTask(item.id, item.title)}
                     >
                       <ArrowRight className="w-3 h-3 mr-1" />
@@ -105,7 +105,7 @@ export function InboxModule() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-6 px-2 text-[10px]"
+                      className="h-6 px-2 text-[10px] cockpit-press"
                       onClick={() => handleDismiss(item.id)}
                     >
                       <X className="w-3 h-3" />

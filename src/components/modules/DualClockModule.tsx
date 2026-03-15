@@ -202,7 +202,7 @@ export function DualClockModule() {
                 setShowTimezoneSelector(!showTimezoneSelector);
                 setShowAddTimezone(false);
               }}
-              className="font-mono hover:text-accent transition-colors cursor-pointer"
+              className="font-mono hover:text-accent transition-colors cursor-pointer cockpit-press"
             >
               {selectedTZ.name.toUpperCase()} {selectedTZ.emoji}
             </button>
