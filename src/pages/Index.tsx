@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAutoExport } from "@/hooks/useAutoExport";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import { Header } from "@/components/Header";
 import { LayoutSelector, LayoutType } from "@/components/LayoutSelector";
 import { ModuleSelector, ModuleType } from "@/components/ModuleSelector";
@@ -8,21 +10,57 @@ import { TaskModule } from "@/components/modules/TaskModule";
 import { DualClockModule } from "@/components/modules/DualClockModule";
 import { NotesModule } from "@/components/modules/NotesModule";
 import { EmptyModule } from "@/components/modules/EmptyModule";
+import { FlightModeModule } from "@/components/modules/FlightModeModule";
+import { InboxModule } from "@/components/modules/InboxModule";
+import { WatchSummaryModule } from "@/components/modules/WatchSummaryModule";
+import { useLayoutStore, useStore } from "@/store/useStore";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 const Index = () => {
-  const [showLayoutSelector, setShowLayoutSelector] = useState(true);
+  useAutoExport();
+  useWakeLock();
+
+  // Prune focus sessions older than 90 days once per session
+  useEffect(() => {
+    useStore.getState().pruneOldSessions();
+  }, []);
+  const { layout, setLayout, setModuleInSlot, removeModuleFromSlot } = useLayoutStore();
+
+  // UI transients — not persisted
+  const [showLayoutSelector, setShowLayoutSelector] = useState(!layout.selectedLayout);
   const [showModuleSelector, setShowModuleSelector] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedLayout, setSelectedLayout] = useState<LayoutType | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
-  const [modules, setModules] = useState<{ [key: number]: ModuleType }>({
-    0: "pomodoro",
-    1: "tasks",
+
+  const closeAllModals = () => {
+    setShowLayoutSelector(false);
+    setShowModuleSelector(false);
+    setShowSettings(false);
+    setSelectedSlot(null);
+  };
+
+  useKeyboardShortcuts({
+    onSettings: () => setShowSettings(true),
+    onChangeLayout: () => setShowLayoutSelector(true),
+    onCloseModal: closeAllModals,
   });
 
-  const handleLayoutSelect = (layout: LayoutType) => {
-    setSelectedLayout(layout);
+  const handleLayoutSelect = (selectedLayout: LayoutType) => {
+    setLayout(selectedLayout);
     setShowLayoutSelector(false);
+
+    // Clear orphan modules beyond the new layout's slot count
+    const maxSlots =
+      selectedLayout === "2-modules" ? 2
+      : selectedLayout === "4-modules" ? 4
+      : 3;
+    const currentModules = layout.modules;
+    Object.keys(currentModules).forEach((slotStr) => {
+      const slot = Number(slotStr);
+      if (slot >= maxSlots) {
+        removeModuleFromSlot(slot);
+      }
+    });
   };
 
   const handleAddModuleClick = (slot: number) => {
@@ -32,7 +70,7 @@ const Index = () => {
 
   const handleModuleSelect = (moduleType: ModuleType) => {
     if (selectedSlot !== null) {
-      setModules({ ...modules, [selectedSlot]: moduleType });
+      setModuleInSlot(selectedSlot, moduleType);
       setShowModuleSelector(false);
       setSelectedSlot(null);
     }
@@ -44,13 +82,11 @@ const Index = () => {
   };
 
   const handleRemoveModule = (slot: number) => {
-    const newModules = { ...modules };
-    delete newModules[slot];
-    setModules(newModules);
+    removeModuleFromSlot(slot);
   };
 
   const renderModule = (slot: number) => {
-    const moduleType = modules[slot];
+    const moduleType = layout.modules[slot];
     if (!moduleType) {
       return <EmptyModule onAddClick={() => handleAddModuleClick(slot)} />;
     }
@@ -65,6 +101,12 @@ const Index = () => {
           return <DualClockModule />;
         case "notes":
           return <NotesModule />;
+        case "flightmode":
+          return <FlightModeModule />;
+        case "inbox":
+          return <InboxModule />;
+        case "watchsummary":
+          return <WatchSummaryModule />;
         default:
           return null;
       }
@@ -73,7 +115,7 @@ const Index = () => {
     return (
       <div className="relative group h-full">
         {moduleContent}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1.5 z-10">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-40 hover:opacity-100 transition-opacity flex gap-1.5 z-10">
           <button
             onClick={() => handleChangeModule(slot)}
             className="bg-primary/90 hover:bg-primary text-primary-foreground rounded px-2 py-1 text-[10px] font-semibold shadow-lg"
@@ -94,7 +136,7 @@ const Index = () => {
   };
 
   const getLayoutClasses = () => {
-    switch (selectedLayout) {
+    switch (layout.selectedLayout) {
       case "2-modules":
         return "grid grid-cols-2 gap-2 h-full";
       case "3-modules-a":
@@ -109,11 +151,11 @@ const Index = () => {
   };
 
   const renderLayout = () => {
-    if (!selectedLayout) return null;
+    if (!layout.selectedLayout) return null;
 
     const layoutClasses = getLayoutClasses();
 
-    switch (selectedLayout) {
+    switch (layout.selectedLayout) {
       case "2-modules":
         return (
           <div className={layoutClasses}>
@@ -124,17 +166,17 @@ const Index = () => {
       case "3-modules-a":
         return (
           <div className={layoutClasses}>
-            <div className="row-span-2">{renderModule(0)}</div>
-            {renderModule(1)}
-            {renderModule(2)}
+            <div className="col-start-1 row-start-1 row-span-2">{renderModule(0)}</div>
+            <div className="col-start-2 row-start-1">{renderModule(1)}</div>
+            <div className="col-start-2 row-start-2">{renderModule(2)}</div>
           </div>
         );
       case "3-modules-b":
         return (
           <div className={layoutClasses}>
-            {renderModule(0)}
-            {renderModule(1)}
-            <div className="row-span-2">{renderModule(2)}</div>
+            <div className="col-start-1 row-start-1">{renderModule(0)}</div>
+            <div className="col-start-1 row-start-2">{renderModule(1)}</div>
+            <div className="col-start-2 row-start-1 row-span-2">{renderModule(2)}</div>
           </div>
         );
       case "4-modules":
@@ -173,6 +215,7 @@ const Index = () => {
             setShowModuleSelector(false);
             setSelectedSlot(null);
           }}
+          usedModules={Object.values(layout.modules)}
         />
       )}
 

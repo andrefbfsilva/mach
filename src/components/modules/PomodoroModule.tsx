@@ -2,27 +2,25 @@ import { useState, useEffect } from "react";
 import { Play, Pause, RotateCcw, Timer, SkipForward, Settings } from "lucide-react";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
+import { usePomodoroStore, useFocusStore, useStore } from "@/store/useStore";
+import { useHaptic } from "@/hooks/useHaptic";
+import { useSound } from "@/hooks/useSound";
 
 type PomodoroPhase = "work" | "shortBreak" | "longBreak";
 
 export function PomodoroModule() {
-  // Timer settings (in minutes)
-  const [workDuration, setWorkDuration] = useState(25);
-  const [shortBreakDuration, setShortBreakDuration] = useState(5);
-  const [longBreakDuration, setLongBreakDuration] = useState(15);
+  const { pomodoro, incrementPomodoro, resetCycle, updatePomodoroSettings } = usePomodoroStore();
+  const { addFocusSession } = useFocusStore();
+  const { trigger } = useHaptic();
+  const { play } = useSound();
 
-  // Timer state
-  const [minutes, setMinutes] = useState(workDuration);
+  // Timer state — transient, not persisted
+  const [minutes, setMinutes] = useState(pomodoro.workDuration);
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
-
-  // Pomodoro cycle state
   const [phase, setPhase] = useState<PomodoroPhase>("work");
-  const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
-  const [cycleCount, setCycleCount] = useState(0); // 0-3, resets after 4
 
-  // Settings
-  const [autoStart, setAutoStart] = useState(false);
+  // Settings UI state — transient
   const [showSettings, setShowSettings] = useState(false);
 
   // Update minutes when phase changes
@@ -30,18 +28,18 @@ export function PomodoroModule() {
     if (!isActive) {
       switch (phase) {
         case "work":
-          setMinutes(workDuration);
+          setMinutes(pomodoro.workDuration);
           break;
         case "shortBreak":
-          setMinutes(shortBreakDuration);
+          setMinutes(pomodoro.shortBreakDuration);
           break;
         case "longBreak":
-          setMinutes(longBreakDuration);
+          setMinutes(pomodoro.longBreakDuration);
           break;
       }
       setSeconds(0);
     }
-  }, [phase, workDuration, shortBreakDuration, longBreakDuration, isActive]);
+  }, [phase, pomodoro.workDuration, pomodoro.shortBreakDuration, pomodoro.longBreakDuration, isActive]);
 
   // Timer countdown logic
   useEffect(() => {
@@ -51,7 +49,6 @@ export function PomodoroModule() {
       interval = setInterval(() => {
         if (seconds === 0) {
           if (minutes === 0) {
-            // Timer completed
             handlePhaseComplete();
           } else {
             setMinutes(minutes - 1);
@@ -71,29 +68,34 @@ export function PomodoroModule() {
   const handlePhaseComplete = () => {
     setIsActive(false);
 
+    const currentPomodoro = useStore.getState().pomodoro;
+    trigger("warning");
+    play("alert");
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const title = phase === 'work' ? 'Pomodoro Complete!' : 'Break Over!';
+      const body = phase === 'work'
+        ? 'Session #' + (currentPomodoro.pomodorosCompleted + 1) + ' done. Time for a break.'
+        : 'Back to focus mode, pilot.';
+      new Notification(title, { body, icon: '/mach/icon.svg', tag: 'mach-pomodoro' });
+    }
+
     if (phase === "work") {
-      // Work session completed
-      const newPomodorosCompleted = pomodorosCompleted + 1;
-      setPomodorosCompleted(newPomodorosCompleted);
-
-      const newCycleCount = cycleCount + 1;
-      setCycleCount(newCycleCount);
-
-      // Decide next phase
-      if (newCycleCount >= 4) {
-        // Time for long break
+      const nextCycleCount = currentPomodoro.cycleCount + 1;
+      incrementPomodoro();
+      const endedAt = new Date().toISOString();
+      const startedAt = new Date(Date.now() - currentPomodoro.workDuration * 60 * 1000).toISOString();
+      addFocusSession({ startedAt, endedAt, durationMinutes: currentPomodoro.workDuration, type: "pomodoro" });
+      if (nextCycleCount >= 4) {
         setPhase("longBreak");
-        setCycleCount(0);
       } else {
-        // Time for short break
         setPhase("shortBreak");
       }
     } else {
-      // Break completed, back to work
       setPhase("work");
     }
 
-    if (autoStart) {
+    if (currentPomodoro.autoStart) {
       setTimeout(() => setIsActive(true), 1000);
     }
   };
@@ -105,7 +107,7 @@ export function PomodoroModule() {
   const resetTimer = () => {
     setIsActive(false);
     setPhase("work");
-    setMinutes(workDuration);
+    setMinutes(pomodoro.workDuration);
     setSeconds(0);
   };
 
@@ -116,23 +118,22 @@ export function PomodoroModule() {
     }
   };
 
-  const resetCycle = () => {
+  const handleResetCycle = () => {
     setIsActive(false);
     setPhase("work");
-    setMinutes(workDuration);
+    setMinutes(pomodoro.workDuration);
     setSeconds(0);
-    setCycleCount(0);
-    setPomodorosCompleted(0);
+    resetCycle();
   };
 
   const getTotalSeconds = () => {
     switch (phase) {
       case "work":
-        return workDuration * 60;
+        return pomodoro.workDuration * 60;
       case "shortBreak":
-        return shortBreakDuration * 60;
+        return pomodoro.shortBreakDuration * 60;
       case "longBreak":
-        return longBreakDuration * 60;
+        return pomodoro.longBreakDuration * 60;
     }
   };
 
@@ -186,8 +187,8 @@ export function PomodoroModule() {
               <label className="text-xs text-muted-foreground">Work Duration (min)</label>
               <input
                 type="number"
-                value={workDuration}
-                onChange={(e) => setWorkDuration(Number(e.target.value))}
+                value={pomodoro.workDuration}
+                onChange={(e) => updatePomodoroSettings({ workDuration: Number(e.target.value) })}
                 className="w-full bg-background border border-primary/30 rounded px-2 py-1 text-sm"
                 min="1"
                 max="60"
@@ -198,8 +199,8 @@ export function PomodoroModule() {
               <label className="text-xs text-muted-foreground">Short Break (min)</label>
               <input
                 type="number"
-                value={shortBreakDuration}
-                onChange={(e) => setShortBreakDuration(Number(e.target.value))}
+                value={pomodoro.shortBreakDuration}
+                onChange={(e) => updatePomodoroSettings({ shortBreakDuration: Number(e.target.value) })}
                 className="w-full bg-background border border-primary/30 rounded px-2 py-1 text-sm"
                 min="1"
                 max="30"
@@ -210,8 +211,8 @@ export function PomodoroModule() {
               <label className="text-xs text-muted-foreground">Long Break (min)</label>
               <input
                 type="number"
-                value={longBreakDuration}
-                onChange={(e) => setLongBreakDuration(Number(e.target.value))}
+                value={pomodoro.longBreakDuration}
+                onChange={(e) => updatePomodoroSettings({ longBreakDuration: Number(e.target.value) })}
                 className="w-full bg-background border border-primary/30 rounded px-2 py-1 text-sm"
                 min="1"
                 max="60"
@@ -220,14 +221,17 @@ export function PomodoroModule() {
 
             <div className="flex items-center justify-between pt-2 border-t border-primary/20">
               <label className="text-xs text-muted-foreground">Auto-start next phase</label>
-              <Switch checked={autoStart} onCheckedChange={setAutoStart} />
+              <Switch
+                checked={pomodoro.autoStart}
+                onCheckedChange={(checked) => updatePomodoroSettings({ autoStart: checked })}
+              />
             </div>
           </div>
 
           <Button
             variant="outline"
             size="sm"
-            onClick={resetCycle}
+            onClick={handleResetCycle}
             className="w-full mt-4"
           >
             Reset All
@@ -242,13 +246,13 @@ export function PomodoroModule() {
               {getPhaseLabel()}
             </div>
             <div className="text-[10px] font-mono text-muted-foreground mt-1">
-              POMODORO {cycleCount + 1}/4
+              POMODORO {pomodoro.cycleCount + 1}/4
             </div>
           </div>
 
           {/* Circular Timer */}
           <div className="relative">
-            <svg className="w-36 h-36 -rotate-90">
+            <svg className="w-28 h-28 md:w-36 md:h-36 -rotate-90" viewBox="0 0 144 144">
               <circle
                 cx="72"
                 cy="72"
@@ -325,14 +329,14 @@ export function PomodoroModule() {
           <div className="flex items-center justify-center gap-2 mt-4">
             <Timer className="w-3 h-3 text-accent" />
             <span className="text-xs font-mono text-muted-foreground">
-              TOTAL: {pomodorosCompleted}
+              TOTAL: {pomodoro.pomodorosCompleted}
             </span>
             <div className="flex gap-1 ml-2">
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
                   className={`w-1.5 h-1.5 rounded-full ${
-                    i < cycleCount ? "bg-success pulse-glow" : "bg-muted"
+                    i < pomodoro.cycleCount ? "bg-success pulse-glow" : "bg-muted"
                   }`}
                 />
               ))}

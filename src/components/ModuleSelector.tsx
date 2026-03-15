@@ -1,14 +1,15 @@
-import { Timer, ListTodo, Clock, FileText } from "lucide-react";
+import { Timer, ListTodo, Clock, FileText, Plane, Inbox, Radio } from "lucide-react";
 import { Button } from "./ui/button";
 
-export type ModuleType = "pomodoro" | "tasks" | "clock" | "notes";
+export type ModuleType = "pomodoro" | "tasks" | "clock" | "notes" | "flightmode" | "inbox" | "watchsummary";
 
 interface ModuleSelectorProps {
   onSelectModule: (module: ModuleType) => void;
   onClose: () => void;
+  usedModules?: ModuleType[];
 }
 
-export function ModuleSelector({ onSelectModule, onClose }: ModuleSelectorProps) {
+export function ModuleSelector({ onSelectModule, onClose, usedModules = [] }: ModuleSelectorProps) {
   const modules = [
     {
       id: "pomodoro" as ModuleType,
@@ -38,10 +39,36 @@ export function ModuleSelector({ onSelectModule, onClose }: ModuleSelectorProps)
       icon: FileText,
       color: "from-destructive to-accent",
     },
+    {
+      id: "flightmode" as ModuleType,
+      name: "FLIGHT MODE",
+      description: "Focus session tracker",
+      icon: Plane,
+      color: "from-primary to-destructive",
+    },
+    {
+      id: "inbox" as ModuleType,
+      name: "INCOMING",
+      description: "Items from Watch & Shortcuts",
+      icon: Inbox,
+      color: "from-accent to-primary",
+    },
+    {
+      id: "watchsummary" as ModuleType,
+      name: "WATCH SUMMARY",
+      description: "Watch companion preview",
+      icon: Radio,
+      color: "from-success to-accent",
+    },
   ];
 
   return (
-    <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+    <div
+      className="fixed inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      tabIndex={-1}
+      ref={(el) => el?.focus()}
+    >
       <div className="glass rounded-lg p-8 max-w-3xl w-full mx-4 animate-fade-in">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-2">SELECT MODULE</h2>
@@ -51,25 +78,37 @@ export function ModuleSelector({ onSelectModule, onClose }: ModuleSelectorProps)
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {modules.map((module) => (
-            <button
-              key={module.id}
-              onClick={() => onSelectModule(module.id)}
-              className="module-panel rounded-lg p-6 hover:border-primary hover:shadow-[0_0_30px_hsl(199_100%_50%_/_0.4)] transition-all cursor-pointer group"
-            >
-              <div className="flex items-start gap-4">
-                <div className={`w-16 h-16 bg-gradient-to-br ${module.color} rounded flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                  <module.icon className="w-8 h-8 text-background" />
+          {modules.map((module) => {
+            const inUse = usedModules.includes(module.id);
+            return (
+              <button
+                key={module.id}
+                onClick={() => !inUse && onSelectModule(module.id)}
+                className={`relative module-panel rounded-lg p-6 transition-all ${
+                  inUse
+                    ? "opacity-50 pointer-events-none cursor-default"
+                    : "hover:border-primary hover:shadow-[0_0_30px_hsl(199_100%_50%_/_0.4)] cursor-pointer group"
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`w-16 h-16 bg-gradient-to-br ${module.color} rounded flex items-center justify-center ${!inUse && "group-hover:scale-110"} transition-transform`}>
+                    <module.icon className="w-8 h-8 text-background" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="text-lg font-semibold mb-2">{module.name}</h3>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      {module.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 text-left">
-                  <h3 className="text-lg font-semibold mb-2">{module.name}</h3>
-                  <p className="text-sm text-muted-foreground font-mono">
-                    {module.description}
-                  </p>
-                </div>
-              </div>
-            </button>
-          ))}
+                {inUse && (
+                  <span className="absolute top-2 right-2 text-[9px] font-mono font-semibold border border-muted-foreground/50 text-muted-foreground rounded px-1.5 py-0.5">
+                    IN USE
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex justify-center">

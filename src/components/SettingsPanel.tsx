@@ -1,20 +1,151 @@
-import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout } from "lucide-react";
+import { useRef, useState } from "react";
+import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout, Bell, Zap, Inbox } from "lucide-react";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
-import { useState } from "react";
+import { useSettingsStore, useStore } from "@/store/useStore";
+import { createBridgeExport, parseBridgeImport, mergeBridgeInbox } from "@/types/bridge";
+import { isWakeLockSupported } from "@/hooks/useWakeLock";
+import { toast } from "sonner";
 
 interface SettingsPanelProps {
   onClose: () => void;
   onChangeLayout?: () => void;
 }
 
+function makeTimestamp(): string {
+  const now = new Date();
+  return (
+    now.getFullYear().toString() +
+    (now.getMonth() + 1).toString().padStart(2, "0") +
+    now.getDate().toString().padStart(2, "0") +
+    "-" +
+    now.getHours().toString().padStart(2, "0") +
+    now.getMinutes().toString().padStart(2, "0") +
+    now.getSeconds().toString().padStart(2, "0")
+  );
+}
+
+function downloadJson(json: string, filename: string) {
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
+  const { settings, toggleSound, toggleHaptic, toggleWakeLock } = useSettingsStore();
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    'Notification' in window ? Notification.permission : 'denied'
+  );
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleRequestNotifications = async () => {
+    if (!('Notification' in window)) return;
+    const result = await Notification.requestPermission();
+    setNotifPermission(result);
+  };
+
+  const handleExport = async () => {
+    const state = useStore.getState();
+    const bridge = createBridgeExport(state);
+    const json = JSON.stringify(bridge, null, 2);
+    const filename = `mach-state-${makeTimestamp()}.json`;
+
+    if ('showSaveFilePicker' in window) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fileHandle = await (window as any).showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: "JSON", accept: { "application/json": [".json"] } }],
+        });
+        const writable = await fileHandle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        toast("State exported successfully");
+        useStore.getState().markExported();
+        return;
+      } catch {
+        // User cancelled or API not supported — fall through to blob download
+      }
+    }
+
+    downloadJson(json, filename);
+    toast("State exported successfully");
+    useStore.getState().markExported();
+  };
+
+  const handleImport = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const json = ev.target?.result as string;
+      const bridge = parseBridgeImport(json);
+
+      if (!bridge) {
+        toast.error("Invalid MACH bridge file");
+        return;
+      }
+
+      const currentState = useStore.getState();
+      const { tasksToAdd, pomodorosCompleted, sessionsToAdd, inboxItemsToImport } =
+        mergeBridgeInbox(currentState, bridge);
+
+      useStore.setState((s) => ({
+        tasks: {
+          items: [...s.tasks.items, ...tasksToAdd],
+          lastModified: new Date().toISOString(),
+        },
+        pomodoro: {
+          ...s.pomodoro,
+          pomodorosCompleted,
+          lastModified: new Date().toISOString(),
+        },
+        focus: {
+          ...s.focus,
+          sessions: [...s.focus.sessions, ...sessionsToAdd],
+          lastModified: new Date().toISOString(),
+        },
+      }));
+
+      currentState.importInboxItems(inboxItemsToImport);
+
+      toast(
+        `Imported: ${tasksToAdd.length} new tasks, ${inboxItemsToImport.length} inbox items, ${sessionsToAdd.length} focus sessions`
+      );
+    };
+    reader.readAsText(file);
+
+    // Reset so same file can be re-imported
+    e.target.value = "";
+  };
+
+  const handleQuickExport = () => {
+    const cached = localStorage.getItem("mach-bridge-latest");
+    if (!cached) {
+      toast.error("No cached state available");
+      return;
+    }
+    downloadJson(cached, `mach-bridge-latest.json`);
+    toast("Quick export downloaded");
+    useStore.getState().markExported();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex">
+    <div
+      className="fixed inset-0 z-50 flex"
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      tabIndex={-1}
+      ref={(el) => el?.focus()}
+    >
       {/* Backdrop */}
       <div
         className="flex-1 bg-background/80"
@@ -22,9 +153,9 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
       />
 
       {/* Settings Panel */}
-      <div className="w-full max-w-md glass border-l border-primary/30 p-6 overflow-y-auto animate-slide-in">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+      <div className="w-full max-w-md glass border-l border-primary/30 p-6 animate-slide-in flex flex-col">
+        {/* Header — fixed, does not scroll */}
+        <div className="flex items-center justify-between mb-6 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-bold">SETTINGS</h2>
             <p className="text-sm text-muted-foreground font-mono">
@@ -36,8 +167,8 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
           </Button>
         </div>
 
-        {/* Settings Sections */}
-        <div className="space-y-6">
+        {/* Scrollable content with fade indicator */}
+        <div className="flex-1 overflow-y-auto scroll-fade space-y-6">
           {/* Audio & Haptics */}
           <div className="module-panel rounded-lg p-4 space-y-4">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
@@ -55,8 +186,8 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
                 </div>
               </div>
               <Switch
-                checked={soundEnabled}
-                onCheckedChange={setSoundEnabled}
+                checked={settings.soundEnabled}
+                onCheckedChange={toggleSound}
               />
             </div>
 
@@ -71,9 +202,36 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
                 </div>
               </div>
               <Switch
-                checked={hapticEnabled}
-                onCheckedChange={setHapticEnabled}
+                checked={settings.hapticEnabled}
+                onCheckedChange={toggleHaptic}
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium">Notifications</p>
+                  {notifPermission === 'denied' ? (
+                    <p className="text-xs text-destructive">
+                      Enable in browser settings
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {notifPermission === 'granted' ? 'Pomodoro cycle alerts' : 'Allow system alerts'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {notifPermission === 'granted' ? (
+                <span className="text-xs font-mono text-success font-semibold">ENABLED</span>
+              ) : notifPermission === 'denied' ? (
+                <span className="text-xs font-mono text-destructive font-semibold">BLOCKED</span>
+              ) : (
+                <Button variant="cockpit" size="sm" onClick={handleRequestNotifications}>
+                  ENABLE
+                </Button>
+              )}
             </div>
           </div>
 
@@ -87,15 +245,21 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
               <div className="flex items-center gap-3">
                 <Monitor className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="font-medium">Wake Lock</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">Wake Lock</p>
+                    {settings.wakeLockEnabled && isWakeLockSupported && (
+                      <div className="w-2 h-2 rounded-full bg-success pulse-glow" />
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Keep screen awake
+                    {isWakeLockSupported ? "Keep screen awake" : "Not supported in this browser"}
                   </p>
                 </div>
               </div>
               <Switch
-                checked={wakeLockEnabled}
-                onCheckedChange={setWakeLockEnabled}
+                checked={settings.wakeLockEnabled}
+                onCheckedChange={toggleWakeLock}
+                disabled={!isWakeLockSupported}
               />
             </div>
           </div>
@@ -125,15 +289,46 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
               Data Management
             </h3>
 
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleExport}>
               <Upload className="w-4 h-4" />
               Export Data
             </Button>
 
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleQuickExport}>
+              <Zap className="w-4 h-4" />
+              Quick Export
+            </Button>
+
+            <Button variant="outline" className="w-full justify-start" onClick={handleImport}>
               <Download className="w-4 h-4" />
               Import Data
             </Button>
+
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                useStore.getState().addInboxItem({
+                  title: "Test item from Watch",
+                  source: "watch",
+                  createdAt: new Date().toISOString(),
+                  processed: false,
+                });
+                toast("Test inbox item added");
+              }}
+            >
+              <Inbox className="w-4 h-4" />
+              Add Test Inbox Item
+            </Button>
+
+            {/* Hidden file input for import */}
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleFileChange}
+            />
           </div>
 
           {/* About */}
