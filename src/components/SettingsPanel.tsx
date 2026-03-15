@@ -153,9 +153,9 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
       />
 
       {/* Settings Panel */}
-      <div className="w-full max-w-md glass border-l border-primary/30 p-6 overflow-y-auto animate-slide-in">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+      <div className="w-full max-w-md glass border-l border-primary/30 p-6 animate-slide-in flex flex-col">
+        {/* Header — fixed, does not scroll */}
+        <div className="flex items-center justify-between mb-6 flex-shrink-0">
           <div>
             <h2 className="text-2xl font-bold">SETTINGS</h2>
             <p className="text-sm text-muted-foreground font-mono">
@@ -167,8 +167,8 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
           </Button>
         </div>
 
-        {/* Settings Sections */}
-        <div className="space-y-6">
+        {/* Scrollable content with fade indicator */}
+        <div className="flex-1 overflow-y-auto scroll-fade space-y-6">
           {/* Audio & Haptics */}
           <div className="module-panel rounded-lg p-4 space-y-4">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
