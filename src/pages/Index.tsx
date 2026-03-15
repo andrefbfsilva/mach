@@ -10,6 +10,9 @@ import { TaskModule } from "@/components/modules/TaskModule";
 import { DualClockModule } from "@/components/modules/DualClockModule";
 import { NotesModule } from "@/components/modules/NotesModule";
 import { EmptyModule } from "@/components/modules/EmptyModule";
+import { FlightModeModule } from "@/components/modules/FlightModeModule";
+import { InboxModule } from "@/components/modules/InboxModule";
+import { WatchSummaryModule } from "@/components/modules/WatchSummaryModule";
 import { useLayoutStore } from "@/store/useStore";
 
 const Index = () => {
@@ -66,6 +69,12 @@ const Index = () => {
           return <DualClockModule />;
         case "notes":
           return <NotesModule />;
+        case "flightmode":
+          return <FlightModeModule />;
+        case "inbox":
+          return <InboxModule />;
+        case "watchsummary":
+          return <WatchSummaryModule />;
         default:
           return null;
       }

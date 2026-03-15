@@ -1,7 +1,7 @@
-import { Timer, ListTodo, Clock, FileText } from "lucide-react";
+import { Timer, ListTodo, Clock, FileText, Plane, Inbox, Radio } from "lucide-react";
 import { Button } from "./ui/button";
 
-export type ModuleType = "pomodoro" | "tasks" | "clock" | "notes";
+export type ModuleType = "pomodoro" | "tasks" | "clock" | "notes" | "flightmode" | "inbox" | "watchsummary";
 
 interface ModuleSelectorProps {
   onSelectModule: (module: ModuleType) => void;
@@ -37,6 +37,27 @@ export function ModuleSelector({ onSelectModule, onClose }: ModuleSelectorProps)
       description: "Markdown editor for flight logs",
       icon: FileText,
       color: "from-destructive to-accent",
+    },
+    {
+      id: "flightmode" as ModuleType,
+      name: "FLIGHT MODE",
+      description: "Focus session tracker",
+      icon: Plane,
+      color: "from-primary to-destructive",
+    },
+    {
+      id: "inbox" as ModuleType,
+      name: "INCOMING",
+      description: "Items from Watch & Shortcuts",
+      icon: Inbox,
+      color: "from-accent to-primary",
+    },
+    {
+      id: "watchsummary" as ModuleType,
+      name: "WATCH SUMMARY",
+      description: "Watch companion preview",
+      icon: Radio,
+      color: "from-success to-accent",
     },
   ];
 
