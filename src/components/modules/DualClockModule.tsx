@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Clock, Globe } from "lucide-react";
 import { Button } from "../ui/button";
+import { useClockStore } from "@/store/useStore";
 
 const timezones = [
   { name: "New York", offset: -5, emoji: "🗽" },
@@ -12,10 +13,12 @@ const timezones = [
 ];
 
 export function DualClockModule() {
+  const { clock, setSelectedTimezone, toggleTimeFormat } = useClockStore();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedTimezone, setSelectedTimezone] = useState(timezones[0]);
-  const [is24Hour, setIs24Hour] = useState(true);
   const [showTimezoneSelector, setShowTimezoneSelector] = useState(false);
+
+  const selectedTimezone =
+    timezones.find((tz) => tz.name === clock.selectedTimezone) ?? timezones[0];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -28,9 +31,9 @@ export function DualClockModule() {
   const formatTime = (date: Date, offset: number = 0) => {
     const utc = date.getTime() + date.getTimezoneOffset() * 60000;
     const localTime = new Date(utc + 3600000 * offset);
-    
+
     return localTime.toLocaleTimeString("en-US", {
-      hour12: !is24Hour,
+      hour12: !clock.is24Hour,
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
@@ -58,9 +61,9 @@ export function DualClockModule() {
         <Button
           variant="switch"
           size="sm"
-          onClick={() => setIs24Hour(!is24Hour)}
+          onClick={toggleTimeFormat}
         >
-          {is24Hour ? "24H" : "12H"}
+          {clock.is24Hour ? "24H" : "12H"}
         </Button>
       </div>
 
@@ -122,7 +125,7 @@ export function DualClockModule() {
                   }
                   size="sm"
                   onClick={() => {
-                    setSelectedTimezone(tz);
+                    setSelectedTimezone(tz.name);
                     setShowTimezoneSelector(false);
                   }}
                   className="justify-start"
