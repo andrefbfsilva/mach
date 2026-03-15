@@ -150,12 +150,6 @@ All colors MUST be HSL.
   * {
     -webkit-overflow-scrolling: touch;
   }
-
-  /* Hardware acceleration for animations - only on elements that actually animate */
-  .module-panel {
-    transform: translateZ(0);
-    will-change: transform;
-  }
 }
 
 /* iPad-specific media queries */
@@ -180,4 +174,9 @@ All colors MUST be HSL.
   .module-panel {
     padding: 1rem;
   }
+}
+
+.scroll-fade {
+  mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 12px), transparent);
 }
