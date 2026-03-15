@@ -14,6 +14,7 @@ import { FlightModeModule } from "@/components/modules/FlightModeModule";
 import { InboxModule } from "@/components/modules/InboxModule";
 import { WatchSummaryModule } from "@/components/modules/WatchSummaryModule";
 import { useLayoutStore } from "@/store/useStore";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 const Index = () => {
   useAutoExport();
@@ -25,6 +26,19 @@ const Index = () => {
   const [showModuleSelector, setShowModuleSelector] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+
+  const closeAllModals = () => {
+    setShowLayoutSelector(false);
+    setShowModuleSelector(false);
+    setShowSettings(false);
+    setSelectedSlot(null);
+  };
+
+  useKeyboardShortcuts({
+    onSettings: () => setShowSettings(true),
+    onChangeLayout: () => setShowLayoutSelector(true),
+    onCloseModal: closeAllModals,
+  });
 
   const handleLayoutSelect = (selectedLayout: LayoutType) => {
     setLayout(selectedLayout);
