@@ -26,7 +26,7 @@ export function WatchSummaryModule() {
 
   // Next task: highest priority, not completed
   const pending = tasks.items.filter((t) => !t.completed);
-  const nextTask = pending.sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])[0] ?? null;
+  const nextTask = [...pending].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])[0] ?? null;
 
   // Focus stats
   const today = new Date().toDateString();
