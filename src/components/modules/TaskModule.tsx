@@ -157,6 +157,13 @@ export function TaskModule() {
 
       {/* Task List */}
       <div className="flex-1 overflow-y-auto space-y-2">
+        {tasks.items.length === 0 && (
+          <div className="h-full flex items-center justify-center">
+            <p className="text-sm font-mono text-muted-foreground text-center">
+              No tasks yet — tap ADD to begin
+            </p>
+          </div>
+        )}
         {tasks.items.map((task) => (
           <div
             key={task.id}
