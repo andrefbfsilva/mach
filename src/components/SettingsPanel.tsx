@@ -1,4 +1,5 @@
-import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout } from "lucide-react";
+import { useState } from "react";
+import { X, Volume2, Vibrate, Monitor, Download, Upload, Info, Layout, Bell } from "lucide-react";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 import { useSettingsStore } from "@/store/useStore";
@@ -10,6 +11,15 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
   const { settings, toggleSound, toggleHaptic, toggleWakeLock } = useSettingsStore();
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    'Notification' in window ? Notification.permission : 'denied'
+  );
+
+  const handleRequestNotifications = async () => {
+    if (!('Notification' in window)) return;
+    const result = await Notification.requestPermission();
+    setNotifPermission(result);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -72,6 +82,33 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
                 checked={settings.hapticEnabled}
                 onCheckedChange={toggleHaptic}
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="font-medium">Notifications</p>
+                  {notifPermission === 'denied' ? (
+                    <p className="text-xs text-destructive">
+                      Enable in browser settings
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {notifPermission === 'granted' ? 'Pomodoro cycle alerts' : 'Allow system alerts'}
+                    </p>
+                  )}
+                </div>
+              </div>
+              {notifPermission === 'granted' ? (
+                <span className="text-xs font-mono text-success font-semibold">ENABLED</span>
+              ) : notifPermission === 'denied' ? (
+                <span className="text-xs font-mono text-destructive font-semibold">BLOCKED</span>
+              ) : (
+                <Button variant="cockpit" size="sm" onClick={handleRequestNotifications}>
+                  ENABLE
+                </Button>
+              )}
             </div>
           </div>
 
