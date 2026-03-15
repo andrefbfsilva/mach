@@ -3,18 +3,38 @@ import { CheckCircle2, Circle, Plus, Trash2, GripVertical } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useTaskStore } from "@/store/useStore";
+import { useHaptic } from "@/hooks/useHaptic";
+import { useSound } from "@/hooks/useSound";
 
 export function TaskModule() {
   const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
+  const { trigger } = useHaptic();
+  const { play } = useSound();
   const [newTask, setNewTask] = useState("");
   const [showInput, setShowInput] = useState(false);
 
   const handleAddTask = () => {
     if (newTask.trim()) {
       addTask({ title: newTask.trim(), priority: "medium" });
+      trigger("tap");
+      play("beep");
       setNewTask("");
       setShowInput(false);
     }
+  };
+
+  const handleToggleTask = (id: string) => {
+    const task = tasks.items.find((t) => t.id === id);
+    if (task && !task.completed) {
+      trigger("success");
+      play("chime");
+    }
+    toggleTask(id);
+  };
+
+  const handleDeleteTask = (id: string) => {
+    trigger("heavy");
+    deleteTask(id);
   };
 
   const completedCount = tasks.items.filter((t) => t.completed).length;
@@ -82,7 +102,7 @@ export function TaskModule() {
           >
             <GripVertical className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" />
             <button
-              onClick={() => toggleTask(task.id)}
+              onClick={() => handleToggleTask(task.id)}
               className="flex-shrink-0"
             >
               {task.completed ? (
@@ -101,7 +121,7 @@ export function TaskModule() {
               {task.title}
             </span>
             <button
-              onClick={() => deleteTask(task.id)}
+              onClick={() => handleDeleteTask(task.id)}
               className="opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <Trash2 className="w-4 h-4 text-destructive hover:text-destructive/80" />

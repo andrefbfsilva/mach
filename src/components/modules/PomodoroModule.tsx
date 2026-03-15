@@ -3,12 +3,16 @@ import { Play, Pause, RotateCcw, Timer, SkipForward, Settings } from "lucide-rea
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 import { usePomodoroStore, useFocusStore } from "@/store/useStore";
+import { useHaptic } from "@/hooks/useHaptic";
+import { useSound } from "@/hooks/useSound";
 
 type PomodoroPhase = "work" | "shortBreak" | "longBreak";
 
 export function PomodoroModule() {
   const { pomodoro, incrementPomodoro, resetCycle, updatePomodoroSettings } = usePomodoroStore();
   const { addFocusSession } = useFocusStore();
+  const { trigger } = useHaptic();
+  const { play } = useSound();
 
   // Timer state — transient, not persisted
   const [minutes, setMinutes] = useState(pomodoro.workDuration);
@@ -63,6 +67,9 @@ export function PomodoroModule() {
 
   const handlePhaseComplete = () => {
     setIsActive(false);
+
+    trigger("warning");
+    play("alert");
 
     if ('Notification' in window && Notification.permission === 'granted') {
       const title = phase === 'work' ? 'Pomodoro Complete!' : 'Break Over!';
