@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { createBridgeExport } from "@/types/bridge";
 import { toast } from "sonner";
@@ -7,6 +8,13 @@ export default function BridgeView() {
   const state = useStore();
   const bridge = createBridgeExport(state);
   const json = JSON.stringify(bridge, null, 2);
+
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+
+  useEffect(() => {
+    const unsubscribe = useStore.subscribe(() => setLastUpdate(new Date()));
+    return unsubscribe;
+  }, []);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(json);
@@ -24,7 +32,7 @@ export default function BridgeView() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-6 mt-[env(safe-area-inset-top)]">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -62,6 +70,9 @@ export default function BridgeView() {
 
         <p className="text-xs text-muted-foreground font-mono mt-4">
           EXPORTED AT: {bridge.exportedAt}
+        </p>
+        <p className="text-xs text-muted-foreground font-mono mt-1">
+          LIVE — Last update: {lastUpdate.toLocaleTimeString()}
         </p>
       </div>
     </div>
