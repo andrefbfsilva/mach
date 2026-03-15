@@ -88,7 +88,7 @@ interface MachState {
   removeModuleFromSlot: (slot: number) => void
 
   // Focus actions
-  addFocusSession: (session: Omit<FocusSession, 'id'>) => void
+  addFocusSession: (session: Omit<FocusSession, 'id'>) => string
   endFocusSession: (id: string) => void
   setDailyGoal: (minutes: number) => void
 
@@ -98,15 +98,11 @@ interface MachState {
   clearProcessedInbox: () => void
   importInboxItems: (items: InboxItem[]) => void
 
-  // Export
-  getExportableState: () => string
 }
-
-let notesDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 export const useStore = create<MachState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       tasks: { items: [], lastModified: new Date().toISOString() },
       pomodoro: {
         pomodorosCompleted: 0,
@@ -217,12 +213,9 @@ export const useStore = create<MachState>()(
       },
 
       updateNotes: (content) => {
-        if (notesDebounceTimer) clearTimeout(notesDebounceTimer)
-        notesDebounceTimer = setTimeout(() => {
-          set(() => ({
-            notes: { content, lastModified: new Date().toISOString() },
-          }))
-        }, 500)
+        set(() => ({
+          notes: { content, lastModified: new Date().toISOString() },
+        }))
       },
 
       setSelectedTimezone: (timezone) => {
@@ -313,15 +306,18 @@ export const useStore = create<MachState>()(
         }
         set((s) => ({
           focus: {
+            ...s.focus,
             sessions: [...s.focus.sessions, newSession],
             lastModified: new Date().toISOString(),
           },
         }))
+        return newSession.id
       },
 
       endFocusSession: (id) => {
         set((s) => ({
           focus: {
+            ...s.focus,
             sessions: s.focus.sessions.map((session) => {
               if (session.id !== id) return session
               const endedAt = new Date().toISOString()
@@ -388,11 +384,35 @@ export const useStore = create<MachState>()(
         })
       },
 
-      getExportableState: () => {
-        return JSON.stringify(get())
-      },
     }),
-    { name: 'mach-store' }
+    {
+      name: 'mach-store',
+      version: 1,
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as Record<string, unknown>
+        if (version === 0) {
+          const focus = state.focus as Record<string, unknown> | undefined
+          if (focus && !('dailyGoalMinutes' in focus)) {
+            focus.dailyGoalMinutes = 240
+          }
+          const clock = state.clock as Record<string, unknown> | undefined
+          if (clock && typeof clock.selectedTimezone === 'string') {
+            const legacyMap: Record<string, string> = {
+              "New York": "America/New_York",
+              "London":   "Europe/London",
+              "Paris":    "Europe/Paris",
+              "Tokyo":    "Asia/Tokyo",
+              "Sydney":   "Australia/Sydney",
+              "Dubai":    "Asia/Dubai",
+            }
+            if (legacyMap[clock.selectedTimezone]) {
+              clock.selectedTimezone = legacyMap[clock.selectedTimezone]
+            }
+          }
+        }
+        return state as MachState
+      },
+    }
   )
 )
 
