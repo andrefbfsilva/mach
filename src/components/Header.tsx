@@ -22,7 +22,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 60000);
+    const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -59,6 +59,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             hour12: false,
             hour: "2-digit",
             minute: "2-digit",
+            second: "2-digit",
           })}
         </div>
 
