@@ -173,7 +173,7 @@ export function DualClockModule() {
             <Clock className="w-4 h-4" />
             <span className="font-mono">LISBOA 🏠</span>
           </div>
-          <div className="text-5xl font-mono font-bold text-primary">
+          <div className="text-3xl md:text-5xl font-mono font-bold text-primary">
             {formatTime(currentTime)}
           </div>
           <div className="text-sm text-muted-foreground font-mono">
@@ -207,7 +207,7 @@ export function DualClockModule() {
               {selectedTZ.name.toUpperCase()} {selectedTZ.emoji}
             </button>
           </div>
-          <div className="text-5xl font-mono font-bold text-accent">
+          <div className="text-3xl md:text-5xl font-mono font-bold text-accent">
             {formatTime(currentTime, resolvedTZ)}
           </div>
           <div className="text-sm text-muted-foreground font-mono">
