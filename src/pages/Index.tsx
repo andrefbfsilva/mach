@@ -29,6 +29,19 @@ const Index = () => {
   const handleLayoutSelect = (selectedLayout: LayoutType) => {
     setLayout(selectedLayout);
     setShowLayoutSelector(false);
+
+    // Clear orphan modules beyond the new layout's slot count
+    const maxSlots =
+      selectedLayout === "2-modules" ? 2
+      : selectedLayout === "4-modules" ? 4
+      : 3;
+    const currentModules = layout.modules;
+    Object.keys(currentModules).forEach((slotStr) => {
+      const slot = Number(slotStr);
+      if (slot >= maxSlots) {
+        removeModuleFromSlot(slot);
+      }
+    });
   };
 
   const handleAddModuleClick = (slot: number) => {
