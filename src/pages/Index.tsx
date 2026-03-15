@@ -8,20 +8,19 @@ import { TaskModule } from "@/components/modules/TaskModule";
 import { DualClockModule } from "@/components/modules/DualClockModule";
 import { NotesModule } from "@/components/modules/NotesModule";
 import { EmptyModule } from "@/components/modules/EmptyModule";
+import { useLayoutStore } from "@/store/useStore";
 
 const Index = () => {
-  const [showLayoutSelector, setShowLayoutSelector] = useState(true);
+  const { layout, setLayout, setModuleInSlot, removeModuleFromSlot } = useLayoutStore();
+
+  // UI transients — not persisted
+  const [showLayoutSelector, setShowLayoutSelector] = useState(!layout.selectedLayout);
   const [showModuleSelector, setShowModuleSelector] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedLayout, setSelectedLayout] = useState<LayoutType | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
-  const [modules, setModules] = useState<{ [key: number]: ModuleType }>({
-    0: "pomodoro",
-    1: "tasks",
-  });
 
-  const handleLayoutSelect = (layout: LayoutType) => {
-    setSelectedLayout(layout);
+  const handleLayoutSelect = (selectedLayout: LayoutType) => {
+    setLayout(selectedLayout);
     setShowLayoutSelector(false);
   };
 
@@ -32,7 +31,7 @@ const Index = () => {
 
   const handleModuleSelect = (moduleType: ModuleType) => {
     if (selectedSlot !== null) {
-      setModules({ ...modules, [selectedSlot]: moduleType });
+      setModuleInSlot(selectedSlot, moduleType);
       setShowModuleSelector(false);
       setSelectedSlot(null);
     }
@@ -44,13 +43,11 @@ const Index = () => {
   };
 
   const handleRemoveModule = (slot: number) => {
-    const newModules = { ...modules };
-    delete newModules[slot];
-    setModules(newModules);
+    removeModuleFromSlot(slot);
   };
 
   const renderModule = (slot: number) => {
-    const moduleType = modules[slot];
+    const moduleType = layout.modules[slot];
     if (!moduleType) {
       return <EmptyModule onAddClick={() => handleAddModuleClick(slot)} />;
     }
@@ -94,7 +91,7 @@ const Index = () => {
   };
 
   const getLayoutClasses = () => {
-    switch (selectedLayout) {
+    switch (layout.selectedLayout) {
       case "2-modules":
         return "grid grid-cols-2 gap-2 h-full";
       case "3-modules-a":
@@ -109,11 +106,11 @@ const Index = () => {
   };
 
   const renderLayout = () => {
-    if (!selectedLayout) return null;
+    if (!layout.selectedLayout) return null;
 
     const layoutClasses = getLayoutClasses();
 
-    switch (selectedLayout) {
+    switch (layout.selectedLayout) {
       case "2-modules":
         return (
           <div className={layoutClasses}>
