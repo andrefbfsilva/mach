@@ -32,7 +32,7 @@ export interface MachBridgeFile {
   inbox: Array<{
     id: string
     title: string
-    source: "watch" | "iphone" | "shortcut"
+    source: string
     createdAt: string
     processed: boolean
   }>
@@ -97,7 +97,7 @@ export function createBridgeExport(state: ExportableState): MachBridgeFile {
     inbox: state.inbox.items.map(({ id, title, source, createdAt, processed }) => ({
       id,
       title,
-      source: source as "watch" | "iphone" | "shortcut",
+      source,
       createdAt,
       processed,
     })),
@@ -168,7 +168,7 @@ export function mergeBridgeInbox(
   // Inbox items: append new ones
   const inboxItemsToImport: InboxItem[] = (bridge.inbox ?? [])
     .filter((i) => !existingInboxIds.has(i.id))
-    .map((i) => ({ ...i, source: i.source as string }))
+    .map((i) => ({ ...i }))
 
   return { tasksToAdd, pomodorosCompleted, sessionsToAdd, inboxItemsToImport }
 }
