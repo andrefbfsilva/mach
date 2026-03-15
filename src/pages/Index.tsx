@@ -197,7 +197,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col pt-[env(safe-area-inset-top)]">
       <Header onSettingsClick={() => setShowSettings(true)} />
 
-      <main className="flex-1 p-2">
+      <main className="flex-1 px-2 pt-2 pb-6">
         {renderLayout()}
       </main>
 
