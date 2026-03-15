@@ -224,7 +224,7 @@ export function DualClockModule() {
                         e.stopPropagation();
                         removeCustomTimezone(tz.tz);
                       }}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center hover:bg-destructive/80 z-10"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center hover:bg-destructive/80 z-10"
                     >
                       ✕
                     </button>
