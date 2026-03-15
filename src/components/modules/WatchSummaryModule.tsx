@@ -1,7 +1,17 @@
 import { ListTodo, Timer, Zap, Inbox, Download } from "lucide-react";
 import { Button } from "../ui/button";
-import { useTaskStore, usePomodoroStore, useFocusStore, useInboxStore } from "@/store/useStore";
+import { useTaskStore, usePomodoroStore, useFocusStore, useInboxStore, useBridgeStore, useStore } from "@/store/useStore";
 import { toast } from "sonner";
+
+function relativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return diffMin + "m ago";
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return diffH + "h ago";
+  return Math.floor(diffH / 24) + "d ago";
+}
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const;
 
@@ -23,6 +33,7 @@ export function WatchSummaryModule() {
   const { pomodoro } = usePomodoroStore();
   const { focus } = useFocusStore();
   const { inbox } = useInboxStore();
+  const { bridge } = useBridgeStore();
 
   // Next task: highest priority, not completed
   const pending = tasks.items.filter((t) => !t.completed);
@@ -51,6 +62,7 @@ export function WatchSummaryModule() {
     a.click();
     URL.revokeObjectURL(url);
     toast("Exported to Watch");
+    useStore.getState().markExported();
   };
 
   return (
@@ -177,9 +189,14 @@ export function WatchSummaryModule() {
       </Button>
 
       {/* Status */}
-      <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mt-3">
-        <div className="w-2 h-2 rounded-full bg-success pulse-glow" />
-        BRIDGE READY
+      <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mt-3">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-success pulse-glow" />
+          BRIDGE READY
+        </div>
+        <span>
+          {bridge.lastExportedAt ? "EXPORT: " + relativeTime(bridge.lastExportedAt) : "NEVER EXPORTED"}
+        </span>
       </div>
     </div>
   );

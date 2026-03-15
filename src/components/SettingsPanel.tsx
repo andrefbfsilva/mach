@@ -65,6 +65,7 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
         await writable.write(json);
         await writable.close();
         toast("State exported successfully");
+        useStore.getState().markExported();
         return;
       } catch {
         // User cancelled or API not supported — fall through to blob download
@@ -73,6 +74,7 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
 
     downloadJson(json, filename);
     toast("State exported successfully");
+    useStore.getState().markExported();
   };
 
   const handleImport = () => {
@@ -134,6 +136,7 @@ export function SettingsPanel({ onClose, onChangeLayout }: SettingsPanelProps) {
     }
     downloadJson(cached, `mach-bridge-latest.json`);
     toast("Quick export downloaded");
+    useStore.getState().markExported();
   };
 
   return (
