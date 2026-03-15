@@ -11,6 +11,22 @@ export interface Task {
   createdAt: string
 }
 
+export interface FocusSession {
+  id: string
+  startedAt: string
+  endedAt: string | null
+  durationMinutes: number
+  type: "pomodoro" | "manual"
+}
+
+export interface InboxItem {
+  id: string
+  title: string
+  source: string
+  createdAt: string
+  processed: boolean
+}
+
 interface MachState {
   // Data
   tasks: { items: Task[]; lastModified: string }
@@ -32,6 +48,8 @@ interface MachState {
   }
   settings: { soundEnabled: boolean; hapticEnabled: boolean; wakeLockEnabled: boolean }
   layout: { selectedLayout: LayoutType | null; modules: Record<number, ModuleType> }
+  focus: { sessions: FocusSession[]; lastModified: string }
+  inbox: { items: InboxItem[]; lastModified: string }
 
   // Task actions
   addTask: (task: { title: string; priority: "high" | "medium" | "low" }) => void
@@ -69,6 +87,16 @@ interface MachState {
   setModuleInSlot: (slot: number, moduleType: ModuleType) => void
   removeModuleFromSlot: (slot: number) => void
 
+  // Focus actions
+  addFocusSession: (session: Omit<FocusSession, 'id'>) => void
+  endFocusSession: (id: string) => void
+
+  // Inbox actions
+  addInboxItem: (item: Omit<InboxItem, 'id'>) => void
+  markInboxProcessed: (id: string) => void
+  clearProcessedInbox: () => void
+  importInboxItems: (items: InboxItem[]) => void
+
   // Export
   getExportableState: () => string
 }
@@ -97,6 +125,8 @@ export const useStore = create<MachState>()(
       },
       settings: { soundEnabled: false, hapticEnabled: false, wakeLockEnabled: false },
       layout: { selectedLayout: null, modules: {} },
+      focus: { sessions: [], lastModified: new Date().toISOString() },
+      inbox: { items: [], lastModified: new Date().toISOString() },
 
       addTask: ({ title, priority }) => {
         const newTask: Task = {
@@ -275,6 +305,82 @@ export const useStore = create<MachState>()(
         })
       },
 
+      addFocusSession: (session) => {
+        const newSession: FocusSession = {
+          id: Date.now().toString(),
+          ...session,
+        }
+        set((s) => ({
+          focus: {
+            sessions: [...s.focus.sessions, newSession],
+            lastModified: new Date().toISOString(),
+          },
+        }))
+      },
+
+      endFocusSession: (id) => {
+        set((s) => ({
+          focus: {
+            sessions: s.focus.sessions.map((session) => {
+              if (session.id !== id) return session
+              const endedAt = new Date().toISOString()
+              const durationMinutes = Math.floor(
+                (Date.now() - new Date(session.startedAt).getTime()) / 60000
+              )
+              return { ...session, endedAt, durationMinutes }
+            }),
+            lastModified: new Date().toISOString(),
+          },
+        }))
+      },
+
+      addInboxItem: (item) => {
+        const newItem: InboxItem = {
+          id: Date.now().toString(),
+          ...item,
+        }
+        set((s) => ({
+          inbox: {
+            items: [...s.inbox.items, newItem],
+            lastModified: new Date().toISOString(),
+          },
+        }))
+      },
+
+      markInboxProcessed: (id) => {
+        set((s) => ({
+          inbox: {
+            items: s.inbox.items.map((item) =>
+              item.id === id ? { ...item, processed: true } : item
+            ),
+            lastModified: new Date().toISOString(),
+          },
+        }))
+      },
+
+      clearProcessedInbox: () => {
+        set((s) => ({
+          inbox: {
+            items: s.inbox.items.filter((item) => !item.processed),
+            lastModified: new Date().toISOString(),
+          },
+        }))
+      },
+
+      importInboxItems: (items) => {
+        set((s) => {
+          const existingIds = new Set(s.inbox.items.map((i) => i.id))
+          const newItems = items.filter((i) => !existingIds.has(i.id))
+          if (newItems.length === 0) return s
+          return {
+            inbox: {
+              items: [...s.inbox.items, ...newItems],
+              lastModified: new Date().toISOString(),
+            },
+          }
+        })
+      },
+
       getExportableState: () => {
         return JSON.stringify(get())
       },
@@ -331,4 +437,20 @@ export const useLayoutStore = () =>
     setLayout: s.setLayout,
     setModuleInSlot: s.setModuleInSlot,
     removeModuleFromSlot: s.removeModuleFromSlot,
+  }))
+
+export const useFocusStore = () =>
+  useStore((s) => ({
+    focus: s.focus,
+    addFocusSession: s.addFocusSession,
+    endFocusSession: s.endFocusSession,
+  }))
+
+export const useInboxStore = () =>
+  useStore((s) => ({
+    inbox: s.inbox,
+    addInboxItem: s.addInboxItem,
+    markInboxProcessed: s.markInboxProcessed,
+    clearProcessedInbox: s.clearProcessedInbox,
+    importInboxItems: s.importInboxItems,
   }))
